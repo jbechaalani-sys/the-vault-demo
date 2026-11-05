@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Vault: Gauntlet</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d10;--panel:#14171c;--panel2:#1b1f26;--line:#2a2f38;--gold:#e7b54a;--gold2:#f5d27a;--text:#eef0f3;--mute:#8b93a1;--green:#3ecf8e;--red:#ff5d6d;--amber:#f2a93b;--cyan:#4fd1ff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#1b1e26 0,#0b0d10 65%) fixed;color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;min-height:100vh}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0 14px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.logo{font-weight:700;letter-spacing:.2em;font-size:17px;cursor:pointer}
+.logo span{color:var(--gold)}
+.sponsor{font-size:11px;color:var(--mute);border:1px dashed #3a404b;padding:6px 10px;border-radius:6px;letter-spacing:.06em;text-align:center}
+h1{font-size:42px;margin:0 0 8px;line-height:1.05}
+h2{margin:0 0 6px;font-size:26px}
+h3{margin:0 0 8px;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.gold{color:var(--gold)}.mute{color:var(--mute)}.mono{font-family:'JetBrains Mono',monospace}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.btn{background:var(--gold);color:#1a1300;border:0;border-radius:10px;padding:14px 22px;font:700 15px 'Space Grotesk',sans-serif;cursor:pointer;letter-spacing:.05em}
+.btn:hover{background:var(--gold2)}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn.ghost:hover{border-color:var(--gold)}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.center{text-align:center}
+.stages{display:grid;gap:8px;margin:14px 0}
+.stg{display:flex;gap:12px;align-items:center;padding:10px 12px;background:var(--panel2);border-radius:10px;border:1px solid var(--line)}
+.stg .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--gold);color:var(--gold);font-weight:700;flex:none}
+.stg .cut{margin-left:auto;font-size:12px;color:var(--mute);text-align:right}
+ul.rules{margin:6px 0 0;padding-left:18px;color:var(--mute);line-height:1.65;font-size:14px}
+.prize{display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(120deg,#2a2410,#14171c);border:1px solid #5a4718;border-radius:14px;padding:16px 20px;margin-bottom:16px}
+.prize .amt{font:700 30px 'JetBrains Mono',monospace;color:var(--gold2)}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:14px}
+.timer{font-family:'JetBrains Mono',monospace;font-size:22px;color:var(--gold)}
+.bar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.bar>i{display:block;height:100%;width:100%;background:var(--gold);transition:width .2s linear}
+.bar.low>i{background:var(--red)}
+.flash{min-height:24px;font-weight:700;text-align:center;margin-bottom:6px}
+.stage-area{display:flex;flex-direction:column;align-items:center;gap:14px}
+.slide{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:min(330px,88vw);aspect-ratio:1;background:#07080a;padding:6px;border-radius:12px;border:1px solid var(--line)}
+.tile{border-radius:8px;background:linear-gradient(145deg,#2c313b,#1a1e25);border:1px solid #3a404b;display:grid;place-items:center;font:700 34px 'JetBrains Mono',monospace;color:var(--gold);cursor:pointer;user-select:none;transition:transform .08s}
+.tile:active{transform:scale(.95)}
+.tile.empty{background:transparent;border:1px dashed #22262d;cursor:default}
+.tile.ok{color:var(--green)}
+.seq{font:700 26px 'JetBrains Mono',monospace;text-align:center;padding:22px 10px;background:#07080a;border-radius:12px;border:1px solid var(--line);width:100%;word-spacing:.15em}
+.seq .q{color:var(--gold)}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%}
+.opt{padding:16px;font:700 22px 'JetBrains Mono',monospace;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);cursor:pointer}
+.opt:hover{border-color:var(--gold)}
+.opt.right{background:#123b2a;border-color:var(--green)}
+.opt.wrong{background:#3b1414;border-color:var(--red)}
+.mgrid{display:grid;gap:6px;width:min(360px,90vw);aspect-ratio:1}
+.mcell{background:var(--panel2);border:1px solid var(--line);border-radius:6px;cursor:pointer;transition:background .12s}
+.mcell.lit{background:var(--gold);box-shadow:0 0 14px var(--gold)}
+.mcell.sel{background:var(--cyan)}
+.mcell.hit{background:var(--green)}
+.mcell.miss{background:var(--red)}
+.mcell.missed{background:transparent;border:2px solid var(--gold)}
+svg.laser{width:min(440px,92vw);height:auto;background:#07080a;border-radius:12px;border:1px solid var(--line);touch-action:manipulation;user-select:none}
+svg.laser .mc{cursor:pointer}
+svg.laser .mc:hover rect{fill:#20252e}
+.slots{display:flex;gap:8px}
+.slot{width:52px;height:64px;border-radius:10px;background:#07080a;border:1px solid var(--line);display:grid;place-items:center;font:700 30px 'JetBrains Mono',monospace;color:var(--gold)}
+.slot.cur{border-color:var(--gold);box-shadow:0 0 0 2px #e7b54a33}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(340px,90vw)}
+.key{padding:13px 0;font:700 22px 'JetBrains Mono',monospace;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);cursor:pointer}
+.key:hover{border-color:var(--gold)}
+.key.n1{color:#5a606b;text-decoration:line-through}
+.key.n2{border-color:var(--green);color:var(--green)}
+.key.wide{grid-column:span 2;font-size:15px;letter-spacing:.06em}
+.notes{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;width:min(340px,90vw)}
+.note{padding:6px 0;font:700 14px 'JetBrains Mono',monospace;background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--mute);cursor:pointer}
+.note.n1{color:#5a606b;text-decoration:line-through;border-color:#3b1414}
+.note.n2{color:var(--green);border-color:var(--green)}
+.hist{width:100%;max-width:420px;display:grid;gap:4px}
+.hrow{display:flex;justify-content:space-between;align-items:center;background:var(--panel2);border-radius:8px;padding:7px 12px;font-family:'JetBrains Mono',monospace}
+.hrow .d{letter-spacing:.35em;font-size:18px}
+.pg{color:var(--green)}.pa{color:var(--amber)}
+table.lb{width:100%;border-collapse:collapse;font-size:14px}
+table.lb td{padding:7px 8px;border-bottom:1px solid var(--line)}
+table.lb tr.me td{background:#2a2410;color:var(--gold2);font-weight:700}
+table.lb td.r{text-align:right;font-family:'JetBrains Mono',monospace}
+table.lb td.k{width:46px;color:var(--mute);font-family:'JetBrains Mono',monospace}
+.big{font:700 54px 'JetBrains Mono',monospace;color:var(--gold);line-height:1}
+.pill{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.08em}
+.pill.ok{background:#123b2a;color:var(--green)}
+.pill.no{background:#3b1414;color:var(--red)}
+.pill.pr{background:#16263a;color:var(--cyan)}
+.small{font-size:13px}
+.legend{font-size:13px;color:var(--mute);text-align:center;max-width:440px;line-height:1.5}
+
+.stream{display:grid;grid-template-columns:1.7fr 1fr;gap:10px;margin-bottom:16px}
+.video{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#2e2612,#0d0f13 72%);border:1px solid var(--line)}
+.vtop{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:10px;align-items:center;z-index:2}
+.live{background:#e5334b;color:#fff;font-weight:700;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.1em;display:flex;align-items:center;gap:6px}
+.live i{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.2}}
+.viewers{font-size:12px;color:#cfd6e2;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px}
+.scene{margin-left:auto;font-size:11px;color:var(--gold);letter-spacing:.08em;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px}
+.hostsvg{position:absolute;left:50%;bottom:0;transform:translateX(-50%);height:86%}
+.hostsvg .spin{transform-origin:100px 92px;animation:spin 18s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.vbtn{background:rgba(0,0,0,.55);border:1px solid #3a404b;color:#cfd6e2;border-radius:4px;font:600 11px 'Space Grotesk',sans-serif;padding:3px 8px;cursor:pointer;letter-spacing:.05em}
+.lower{position:absolute;left:12px;right:12px;bottom:12px;z-index:2}
+.tag{display:inline-block;background:var(--gold);color:#1a1300;font-weight:700;font-size:11px;padding:3px 8px;letter-spacing:.1em}
+.cap{background:rgba(0,0,0,.75);padding:8px 10px;font-size:14px;line-height:1.4;min-height:20px}
+.spons{position:absolute;right:12px;top:40px;font-size:10px;color:var(--mute);border:1px dashed #3a404b;padding:3px 6px;border-radius:4px;z-index:2}
+.chat{background:var(--panel);border:1px solid var(--line);border-radius:14px;position:relative;min-height:150px;overflow:hidden}
+.chathead{padding:8px 12px;font-size:11px;letter-spacing:.12em;color:var(--mute);border-bottom:1px solid var(--line)}
+#chatlog{position:absolute;top:33px;left:0;right:0;bottom:42px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;padding:6px 12px;font-size:13px;line-height:1.35}
+#chatform{position:absolute;left:8px;right:8px;bottom:8px}
+#chatform input{width:100%;background:#0b0d10;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font:13px 'Space Grotesk',sans-serif}
+.poll{margin-top:12px;width:100%}
+.pollbar{display:flex;height:26px;border-radius:6px;overflow:hidden;font:700 12px 'JetBrains Mono',monospace}
+.pollbar div{display:flex;align-items:center;padding:0 8px;transition:width .5s}
+.cd{font:700 64px 'JetBrains Mono',monospace;color:var(--gold);line-height:1;margin:10px 0}
+.cams{display:grid;grid-template-columns:repeat(3,minmax(210px,1fr));gap:10px;overflow-x:auto;margin:6px 0 16px;padding-bottom:4px}
+.cam{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:210px}
+.camhead{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:13px;margin-bottom:8px}
+.camhead .rec{width:7px;height:7px;border-radius:50%;background:#e5334b;display:inline-block;margin-right:6px;animation:pulse 1s infinite}
+.camst{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);text-align:right}
+.cambody{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:176px;justify-content:center}
+.ms{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:100%;max-width:170px;aspect-ratio:1}
+.ms div{border-radius:5px;background:#2c313b;display:grid;place-items:center;font:700 20px 'JetBrains Mono',monospace;color:var(--gold)}
+.ms div.e{background:transparent;border:1px dashed #262b33}.ms div.ok{color:var(--green)}
+.mm{display:grid;gap:2px;width:100%;max-width:170px;aspect-ratio:1}
+.mm div{background:#2a2f38;border-radius:3px}.mm .lit{background:var(--gold)}.mm .sel{background:var(--cyan)}.mm .hit{background:var(--green)}.mm .miss{background:var(--red)}.mm .missed{background:transparent;outline:2px solid var(--gold);outline-offset:-2px}
+.mp{font:12px 'JetBrains Mono',monospace;width:100%;display:grid;gap:4px}
+.mp div{background:#0b0d10;border-radius:6px;padding:5px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv{font:13px 'JetBrains Mono',monospace;width:100%;display:grid;gap:3px}
+.mv div{display:flex;justify-content:space-between;background:#0b0d10;border-radius:6px;padding:4px 8px}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{cursor:pointer;padding:7px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--mute)}
+.nav a:hover,.nav a.on{color:var(--text);background:var(--panel2)}
+.field{display:grid;gap:5px;margin-bottom:12px}
+.field label{font-size:13px;color:var(--mute)}
+.field input{background:#0b0d10;border:1px solid var(--line);border-radius:9px;padding:11px 12px;color:var(--text);font:15px 'Space Grotesk',sans-serif}
+.field input:focus{outline:none;border-color:var(--gold)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-bottom:10px;color:#c9ced8}
+.check input{margin-top:3px;accent-color:#e7b54a}
+.err{color:var(--red);font-size:13px;min-height:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat .v{font:700 22px 'JetBrains Mono',monospace;color:var(--gold)}
+.champ{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.champ .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#2a2410;color:var(--gold);font-weight:700;flex:none}
+.regok{background:#10261c;border:1px solid #1f5a3d;border-radius:10px;padding:12px 14px;color:var(--green);font-weight:500}
+.demo{border-style:dashed}
+.lo{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:min(330px,88vw);aspect-ratio:1}
+.lo div{border-radius:8px;background:#161a20;border:1px solid var(--line);cursor:pointer;transition:background .12s}
+.lo div.on{background:var(--gold);box-shadow:0 0 12px #e7b54a88;border-color:var(--gold2)}
+.mlo{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:100%;max-width:160px;aspect-ratio:1}
+.mlo div{border-radius:4px;background:#161a20}.mlo div.on{background:var(--gold)}.mlo div.tap{outline:2px solid var(--cyan);outline-offset:-2px}
+.sim{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(300px,80vw);aspect-ratio:1}
+.sim div{border-radius:18px;opacity:.28;cursor:pointer;transition:opacity .08s,box-shadow .08s}
+.sim div.lit{opacity:1;box-shadow:0 0 28px var(--c)}
+.msim{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:140px;aspect-ratio:1}
+.msim div{border-radius:10px;opacity:.25}.msim div.lit{opacity:1}
+.hn{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(440px,92vw)}
+.peg{height:200px;border-radius:10px;background:#07080a;border:1px solid var(--line);display:flex;flex-direction:column-reverse;align-items:center;padding:10px 6px;gap:4px;cursor:pointer;position:relative}
+.peg.sel{border-color:var(--gold);box-shadow:0 0 0 2px #e7b54a33}
+.peg::before{content:'';position:absolute;bottom:10px;top:24px;width:6px;background:#2a2f38;border-radius:3px;left:calc(50% - 3px)}
+.disk{height:24px;border-radius:6px;position:relative;z-index:1;border:1px solid #0006}
+.peg.sel .disk:last-child{transform:translateY(-8px)}
+.mhn{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;max-width:190px}
+.mhn .peg{height:110px;padding:6px 3px;gap:2px;cursor:default}.mhn .disk{height:13px}
+@media(max-width:620px){.hidem{display:none}.stats{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.stream{grid-template-columns:1fr}.chat{min-height:170px}}
+@media(max-width:520px){h1{font-size:32px}.prize .amt{font-size:22px}}
+
+/* ===== world-class theme overrides ===== */
+body{background:#06070a}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(900px 520px at 75% -8%,rgba(231,181,74,.17),transparent 60%),radial-gradient(700px 420px at -5% 15%,rgba(79,209,255,.07),transparent 60%),radial-gradient(800px 500px at 50% 110%,rgba(231,181,74,.06),transparent 60%);pointer-events:none;z-index:-2}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);background-size:46px 46px;-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 25%,transparent 70%);mask-image:radial-gradient(ellipse at 50% 0%,#000 25%,transparent 70%);pointer-events:none;z-index:-1}
+.wrap{max-width:1100px;padding:0 20px 60px}
+header{position:sticky;top:0;z-index:30;margin:0 -20px 26px;padding:14px 20px;background:rgba(6,7,10,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{display:flex;align-items:center;gap:10px;font:800 16px 'Unbounded',sans-serif;letter-spacing:.14em}
+h1,h2,.display{font-family:'Unbounded','Space Grotesk',sans-serif;letter-spacing:-.01em}
+h1{font-weight:700}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));border:1px solid rgba(255,255,255,.08);border-radius:20px;box-shadow:0 30px 60px -40px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.04)}
+.btn{background:linear-gradient(180deg,#f8dc92 0%,#e7b54a 55%,#cf9a33 100%);border-radius:12px;box-shadow:0 10px 26px -10px rgba(231,181,74,.75),inset 0 1px 0 rgba(255,255,255,.55);transition:transform .15s,box-shadow .15s,filter .15s}
+.btn:hover{background:linear-gradient(180deg,#fbe3a6,#efc25c 55%,#d6a23a);transform:translateY(-1px);box-shadow:0 14px 30px -10px rgba(231,181,74,.9),inset 0 1px 0 rgba(255,255,255,.6)}
+.btn.ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);box-shadow:none}
+.btn.ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(231,181,74,.6)}
+.btn:disabled{filter:grayscale(.6);opacity:.45;transform:none;box-shadow:none}
+.btn.lg{padding:17px 28px;font-size:16px}
+.prize{border-radius:20px;position:relative;overflow:hidden;background:linear-gradient(115deg,#2b220c,#16130b 45%,#0f1116);border:1px solid rgba(231,181,74,.35)}
+.prize::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,236,180,.10) 50%,transparent 65%);animation:shine 5s ease-in-out infinite;pointer-events:none}
+@keyframes shine{0%{transform:translateX(-120%)}60%,100%{transform:translateX(120%)}}
+.hero{display:grid;grid-template-columns:1.3fr .9fr;gap:30px;align-items:center;padding:34px;border-radius:28px;position:relative;overflow:hidden;background:radial-gradient(600px 300px at 85% 30%,rgba(231,181,74,.14),transparent 70%),linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.09);margin-bottom:18px}
+.eyebrow{font:600 12px 'JetBrains Mono',monospace;letter-spacing:.16em;color:var(--gold);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.display{font-size:clamp(34px,5.2vw,60px);line-height:1.02;margin:14px 0 12px;font-weight:800}
+.display em{font-style:normal;background:linear-gradient(180deg,#fbe3a6,#e7b54a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:#aab2bf;font-size:17px;line-height:1.55;margin:0 0 22px;max-width:520px}
+.cdlabel{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--mute);margin-bottom:8px}
+.cdgrid{display:flex;gap:10px;margin-bottom:22px}
+.cdbox{min-width:76px;padding:12px 8px 10px;border-radius:14px;background:rgba(0,0,0,.4);border:1px solid rgba(231,181,74,.22);text-align:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.cdbox b{display:block;font:700 32px 'Unbounded',sans-serif;color:#f5d27a;line-height:1.1;font-variant-numeric:tabular-nums}
+.cdbox span{font:600 10px 'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--mute)}
+.spots{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 16px;margin-bottom:22px}
+.spots .top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.avs{display:flex;padding-left:8px}.avs i{width:30px;height:30px;border-radius:50%;margin-left:-8px;border:2px solid #0d0f14;display:grid;place-items:center;font:700 11px 'Space Grotesk';font-style:normal;color:#0b0d10}
+.spots .num{font:700 22px 'Unbounded',sans-serif}
+.meter{height:8px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}.meter i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#c9932b,#f5d27a);box-shadow:0 0 14px #e7b54a;transition:width .8s}
+.doorwrap{position:relative;display:grid;place-items:center}
+.door{width:100%;max-width:400px;filter:drop-shadow(0 30px 50px rgba(0,0,0,.6))}
+.door .dial{transform-origin:200px 200px;animation:spin 40s linear infinite}
+.door .wheel{transform-origin:200px 200px;animation:wheel 9s ease-in-out infinite}
+@keyframes wheel{0%,100%{transform:rotate(0)}50%{transform:rotate(60deg)}}
+.door .glow{animation:pulse 3s ease-in-out infinite}
+.sec{margin:54px 0 18px}.sec h2{font-size:clamp(24px,3vw,32px);margin:6px 0 8px}.sec p{color:#9aa3b1;margin:0;max-width:640px;line-height:1.55}
+.games{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.game{border-radius:20px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));border:1px solid rgba(255,255,255,.08);transition:transform .2s,border-color .2s}
+.game:hover{transform:translateY(-3px);border-color:rgba(231,181,74,.4)}
+.game .art{position:relative;aspect-ratio:16/9;background:#090b0f;border-bottom:1px solid rgba(255,255,255,.06)}
+.game .art svg{width:100%;height:100%;display:block}
+.game .num{position:absolute;top:12px;left:12px;font:700 12px 'JetBrains Mono',monospace;background:rgba(0,0,0,.6);border:1px solid rgba(231,181,74,.4);color:var(--gold);padding:4px 9px;border-radius:20px;letter-spacing:.1em}
+.game .cutb{position:absolute;top:12px;right:12px;font:600 11px 'Space Grotesk';background:rgba(0,0,0,.6);color:#cfd6e2;padding:4px 9px;border-radius:20px}
+.game .body{padding:18px 20px 20px}
+.game h4{font:700 20px 'Unbounded',sans-serif;margin:0 0 8px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.tags span{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.06);color:#cfd6e2}
+.tags span.g{background:rgba(231,181,74,.14);color:var(--gold2)}
+.game p{color:#aab2bf;font-size:14.5px;line-height:1.6;margin:0}
+.game ul{margin:10px 0 0;padding-left:18px;color:#8b93a1;font-size:13.5px;line-height:1.6}
+.game.final{grid-column:1/-1;display:grid;grid-template-columns:1.1fr 1fr;border-color:rgba(231,181,74,.4);background:linear-gradient(120deg,rgba(231,181,74,.10),rgba(255,255,255,.015) 60%)}
+.game.final .art{aspect-ratio:auto;min-height:260px;border-bottom:0;border-right:1px solid rgba(255,255,255,.06)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.step{padding:20px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08)}
+.step .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(231,181,74,.12);border:1px solid rgba(231,181,74,.3);margin-bottom:14px;font:700 16px 'Unbounded';color:var(--gold)}
+.step b{display:block;font:700 15px 'Unbounded';margin-bottom:6px}.step span{color:#9aa3b1;font-size:14px;line-height:1.5}
+.champs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.champc{padding:20px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden}
+.champc.first{border-color:rgba(231,181,74,.45);background:linear-gradient(160deg,rgba(231,181,74,.13),rgba(255,255,255,.01) 60%)}
+.champc .av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 18px 'Unbounded';color:#1a1300;background:linear-gradient(180deg,#f8dc92,#cf9a33);margin-bottom:12px}
+.champc .pz{font:700 20px 'Unbounded';color:var(--gold2);margin-top:12px}
+.rulesgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.rule{display:flex;gap:14px;padding:18px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)}
+.rule .ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(231,181,74,.12);color:var(--gold);font-weight:700}
+.rule b{display:block;margin-bottom:4px}.rule span{color:#9aa3b1;font-size:14px;line-height:1.5}
+footer.ft{margin-top:56px;padding-top:24px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:#6f7785;font-size:13px}
+@media(max-width:860px){.hero{grid-template-columns:1fr;padding:24px}.doorwrap{order:-1}.door{max-width:240px}.games,.champs,.rulesgrid{grid-template-columns:1fr}.game.final{grid-template-columns:1fr}.game.final .art{border-right:0;border-bottom:1px solid rgba(255,255,255,.06);min-height:200px}.steps{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.cdbox{min-width:0;flex:1}.cdbox b{font-size:24px}.steps{grid-template-columns:1fr}}
+.lbwrap{border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.2)}
+.lbtools{display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid rgba(255,255,255,.07);flex-wrap:wrap}
+.lbtools input{flex:1;min-width:160px;background:#0b0d10;border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--text);font:14px 'Space Grotesk',sans-serif}
+.lbtools input:focus{outline:none;border-color:var(--gold)}
+.btn.sm{padding:8px 12px;font-size:12px}
+.lbscroll{max-height:420px;overflow-y:auto;position:relative}
+.lbscroll table.lb td{padding:6px 10px}
+.lbscroll tr.out td{opacity:.5}
+.lbscroll tr.cutrow td{text-align:center;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;color:var(--red);background:rgba(255,93,109,.07);padding:6px}
+.lbscroll td.st{width:30px}
+.lbscroll::-webkit-scrollbar{width:8px}.lbscroll::-webkit-scrollbar-thumb{background:#2a2f38;border-radius:4px}
+.meterwrap{text-align:center;padding:24px 18px 14px;border-radius:20px;margin:14px 0;background:radial-gradient(500px 200px at 50% 0%,rgba(231,181,74,.18),transparent 70%),rgba(0,0,0,.3);border:1px solid rgba(231,181,74,.35)}
+.vbig{font:800 clamp(38px,8vw,72px) 'Unbounded',sans-serif;color:#f5d27a;font-variant-numeric:tabular-nums;text-shadow:0 0 34px rgba(231,181,74,.35);line-height:1.1;margin-top:6px}
+.vitem{font-weight:600;font-size:15px;margin-top:6px;min-height:22px}
+.drain{color:var(--red);animation:pulse 1.2s infinite}
+.vbar{height:10px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:14px}.vbar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#ff5d6d,#e7b54a 35%,#f5d27a);transition:width .1s linear}
+.vfloat{height:22px;color:var(--red);font:700 16px 'JetBrains Mono',monospace;opacity:0}
+.vfloat.pop{animation:vpop 1.4s ease-out}@keyframes vpop{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-18px)}}
+.locks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.lk{padding:10px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.25);text-align:center;font-size:13px;transition:all .3s}
+.lk.on{border-color:var(--gold);box-shadow:0 0 0 3px #e7b54a2a;background:rgba(231,181,74,.06)}.lk.ok{border-color:#1f5a3d;color:var(--green);background:#10261c}
+.speedgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(380px,90vw)}
+.sbtn{aspect-ratio:1.25;border-radius:12px;background:var(--panel2);border:1px solid var(--line);color:var(--text);font:700 24px 'JetBrains Mono',monospace;cursor:pointer;transition:all .12s}
+.sbtn:hover{border-color:var(--gold)}.sbtn.ok{background:#123b2a;border-color:var(--green);color:var(--green)}.sbtn.bad{background:#3b1414;border-color:var(--red)}
+.vaultfin .slot{width:46px;height:58px}.vcode{font-size:34px;letter-spacing:.2em}
+.insider{display:flex;gap:14px;padding:16px;border-radius:16px;background:linear-gradient(120deg,rgba(79,209,255,.10),rgba(0,0,0,.2));border:1px solid rgba(79,209,255,.4);margin-top:16px}
+.iav{font-size:32px;line-height:1}.itip{font:700 19px 'Unbounded',sans-serif;margin:6px 0;color:#e8f8ff}
+.vintro{max-width:600px;text-align:center;line-height:1.6}.vintro p{margin:0 0 12px}
+.vopen{font:800 clamp(26px,5vw,42px) 'Unbounded',sans-serif;color:var(--green);text-shadow:0 0 30px rgba(62,207,142,.5);padding:20px;animation:pulse 1s 2}
+.prizegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pcard{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);position:relative}
+.pcard .pic{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:24px;background:rgba(231,181,74,.1);border:1px solid rgba(231,181,74,.25)}
+.pcard b{font-size:14px}
+.pcard.top{grid-column:span 2;grid-row:span 2;flex-direction:column;justify-content:center;text-align:center;border-color:rgba(231,181,74,.5);background:linear-gradient(160deg,rgba(231,181,74,.16),rgba(255,255,255,.01) 70%)}
+.pcard.top .pic{width:90px;height:90px;font-size:52px;border-radius:22px}.pcard.top b{font:700 22px 'Unbounded',sans-serif}
+.cashladder{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tier{padding:16px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08)}
+.tier.top{border-color:rgba(231,181,74,.5);background:linear-gradient(160deg,rgba(231,181,74,.14),rgba(255,255,255,.01) 70%)}
+.amt2{font:700 22px 'Unbounded',sans-serif;color:var(--gold2);margin-bottom:4px}
+.tbar{height:6px;border-radius:4px;background:rgba(255,255,255,.07);margin-top:10px;overflow:hidden}.tbar i{display:block;height:100%;background:linear-gradient(90deg,#c9932b,#f5d27a)}
+.scam{margin-top:14px;padding:14px 16px;border-radius:14px;background:rgba(255,93,109,.06);border:1px solid rgba(255,93,109,.3);font-size:14px;line-height:1.55;color:#d9dde4}
+.nextbox{text-align:left;max-width:560px;margin:16px auto;padding:16px;border-radius:16px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08)}
+.nx{display:flex;gap:12px;margin-bottom:10px}.nx>span{font-size:20px;width:28px;flex:none}
+@media(max-width:860px){.prizegrid{grid-template-columns:1fr 1fr}.cashladder{grid-template-columns:1fr 1fr}}
+.demo-ribbon{background:linear-gradient(90deg,#e7b54a,#f5d27a);color:#1a1300;text-align:center;font:700 12px 'Space Grotesk',sans-serif;letter-spacing:.06em;padding:6px 10px}
+.pagehead{padding:10px 0 4px}
+.nav{overflow-x:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
+@media(max-width:600px){.logo .lt{display:none}.nav a{padding:6px 9px;font-size:13px}}
+.ft2{margin-top:64px;padding-top:30px;border-top:1px solid rgba(255,255,255,.07);color:#8b93a1;font-size:14px}
+.fcols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:20px}.fcols b{display:block;color:var(--text);margin-bottom:10px}.fcols a{display:block;cursor:pointer;padding:3px 0;color:#9aa3b1}.fcols a:hover{color:var(--gold2)}
+.fbot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:26px;padding-top:16px;border-top:1px solid rgba(255,255,255,.05);font-size:12.5px;color:#6f7785}
+.accbtn{border:1px solid rgba(231,181,74,.35)}
+.faqsearch,.field select,.field textarea,.copyrow input{width:100%;background:#0b0d10;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--text);font:15px 'Space Grotesk',sans-serif}
+.faqsearch:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+details.faq{border:1px solid rgba(255,255,255,.08);border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.02)}
+details.faq summary{cursor:pointer;padding:16px 18px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details.faq summary::after{content:'+';color:var(--gold);font:700 20px 'Unbounded'}details.faq[open] summary::after{content:'−'}
+details.faq p{margin:0;padding:0 18px 16px;color:#aab2bf;line-height:1.65}
+.draftnote{padding:12px 16px;border-radius:12px;background:rgba(242,169,59,.08);border:1px solid rgba(242,169,59,.35);color:#f2c27a;font-size:14px;margin:10px 0 16px}
+.legal h3{margin:20px 0 6px;color:var(--text);text-transform:none;letter-spacing:0;font-size:16px}.legal h3:first-child{margin-top:0}.legal p{color:#aab2bf;line-height:1.65;margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}.stats4 .stat .v{font-family:'Unbounded',sans-serif}
+.pkgs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.pkg{padding:22px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08)}
+.pkg.top{border-color:rgba(231,181,74,.5);background:linear-gradient(160deg,rgba(231,181,74,.13),rgba(255,255,255,.01) 60%)}.pkg h4{font:700 19px 'Unbounded';margin:10px 0 6px}.pkg ul{padding-left:18px;color:#aab2bf;line-height:1.7;font-size:14px;margin:10px 0 0}
+.hgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}.hcard{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);cursor:pointer;transition:transform .2s,border-color .2s}.hcard:hover{transform:translateY(-3px);border-color:rgba(231,181,74,.45)}
+.hthumb{position:relative;aspect-ratio:16/9;background:radial-gradient(300px 140px at 50% 30%,rgba(231,181,74,.18),transparent 70%),#0a0c10;display:grid;place-items:center}
+.hmeter{width:72%;text-align:center}.hv{font:800 22px 'Unbounded';color:#f5d27a;margin:4px 0 8px}.hmeter .vbar{margin:0;height:6px}
+.play{position:absolute;width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;right:12px;bottom:12px;font-size:15px}
+.dur{position:absolute;left:10px;bottom:10px;font-size:11px;background:rgba(0,0,0,.6);padding:2px 6px;border-radius:4px}.hcard .body{padding:14px 16px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:60;display:grid;place-items:center;padding:20px}.mbox{position:relative;max-width:620px;width:100%;background:#101318;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:26px;max-height:85vh;overflow:auto}.mclose{position:absolute;top:14px;right:14px}
+.tl{display:grid;gap:10px}.tli{display:grid;grid-template-columns:52px 1fr;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.03);line-height:1.5}
+.toggle{display:flex;align-items:center;gap:12px;padding:8px 0;cursor:pointer}.toggle input{display:none}.toggle span{width:40px;height:22px;border-radius:12px;background:#2a2f38;position:relative;transition:.2s}.toggle span::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#cfd6e2;transition:.2s}.toggle input:checked+span{background:var(--gold)}.toggle input:checked+span::after{left:21px;background:#1a1300}
+.copyrow{display:flex;gap:8px}.copyrow input{font-size:13px;padding:9px 11px}
+.badges{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.badge{padding:16px 10px;border-radius:16px;text-align:center;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);opacity:.4;filter:grayscale(1)}.badge.on{opacity:1;filter:none;border-color:rgba(231,181,74,.45);background:linear-gradient(180deg,rgba(231,181,74,.12),rgba(255,255,255,.01))}
+.badge .bi{font-size:28px;margin-bottom:6px}.badge b{display:block;font-size:13px}.badge span{font-size:11.5px;color:#8b93a1}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1b1f26;border:1px solid var(--gold);color:var(--gold2);padding:10px 18px;border-radius:30px;font-weight:700;z-index:70;animation:vpop 2.6s reverse ease-in}
+.field select{appearance:none}
+@media(max-width:860px){.fcols{grid-template-columns:1fr 1fr}.grid2,.pkgs,.hgrid{grid-template-columns:1fr}.stats4{grid-template-columns:1fr 1fr}.badges{grid-template-columns:repeat(3,1fr)}}
+.predbox{margin:12px 0;padding:14px 16px;border-radius:14px;border:1px dashed rgba(180,140,255,.5);background:rgba(180,140,255,.07);text-align:left}
+.interview{margin:16px auto;max-width:560px;text-align:left;padding:16px;border-radius:16px;background:rgba(231,181,74,.06);border:1px solid rgba(231,181,74,.35)}.iq{font:700 18px 'Unbounded',sans-serif;margin:8px 0 12px}.ians{color:var(--gold2);font-weight:600}
+.devcheck{text-align:left;max-width:420px;margin:0 auto 16px;padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08)}.dc{display:grid;grid-template-columns:24px 110px 1fr;gap:8px;padding:5px 0;font-size:14px}.devcheck .regok{margin-top:10px}
+.sharegrid{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:center}.sharegrid img{width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.1)}
+@media(max-width:700px){.sharegrid{grid-template-columns:1fr}}
+.crbtn{border:1px dashed rgba(180,140,255,.6);color:#c9b3ff!important}
+.ladder{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}.ladder span{font:600 11.5px 'Space Grotesk';padding:5px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.1);color:#aab2bf;display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.ladder span i{font:500 10px 'JetBrains Mono',monospace;font-style:normal;opacity:.7}.ladder span.on{border-color:var(--gold);background:rgba(231,181,74,.14);color:var(--gold2)}.ladder span.gone{opacity:.35;text-decoration:line-through}
+.tpic{font-size:30px;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="demo-ribbon">DEMO SITE · prototype of The Vault — nothing you enter is sent anywhere</div>
+<div class="wrap">
+  <header>
+    <div class="logo" id="logo"><svg viewBox="0 0 40 40" width="26" height="26"><circle cx="20" cy="20" r="17" fill="none" stroke="#e7b54a" stroke-width="3"/><circle cx="20" cy="20" r="6" fill="#e7b54a"/><path d="M20 3v6M20 31v6M3 20h6M31 20h6" stroke="#e7b54a" stroke-width="3"/></svg><b class="lt">THE <span>VAULT</span></b></div>
+    <nav class="nav"><a id="navPlay">Play</a><a id="navGames">Games</a><a id="navPrizes">Prizes</a><a id="navRules">Rules</a><a id="navWin">Winners</a><a id="navHi">Highlights</a><a id="navCreator" class="crbtn" style="display:none">🛠 Creator</a><a id="navAcc" class="accbtn">👤 Account</a></nav>
+    <div class="sponsor hidem">PRESENTED BY · YOUR SPONSOR HERE</div>
+  </header>
+  <div id="stream" class="stream" style="display:none">
+    <div class="video">
+      <div class="vtop"><span class="live"><i></i>LIVE</span><span class="viewers mono" id="viewers"></span><span class="scene mono" id="scene"></span><button class="vbtn" id="vbtn">🔊 VOICE ON</button></div>
+      <svg class="hostsvg" viewBox="0 0 200 180">
+        <defs><linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3f4b"/><stop offset="1" stop-color="#23272f"/></linearGradient>
+        <linearGradient id="scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd1ff" stop-opacity="0"/><stop offset=".5" stop-color="#4fd1ff" stop-opacity=".18"/><stop offset="1" stop-color="#4fd1ff" stop-opacity="0"/></linearGradient>
+        <clipPath id="hc"><ellipse cx="100" cy="68" rx="31" ry="38"/></clipPath></defs>
+        <circle id="hring" cx="100" cy="92" r="86" fill="none" stroke="#e7b54a" stroke-opacity=".18" stroke-width="10"/>
+        <circle cx="100" cy="92" r="66" fill="none" stroke="#e7b54a" stroke-opacity=".12" stroke-width="3" stroke-dasharray="5 8" class="spin"/>
+        <path d="M40 180c2-36 26-58 60-58s58 22 60 58z" fill="#1b1f27"/><path d="M84 124l16 40 16-40-16 8z" fill="#e7b54a"/><path d="M78 124l22 56 22-56" fill="none" stroke="#2c313b" stroke-width="3"/>
+        <rect x="90" y="98" width="20" height="24" rx="6" fill="#2b2f39"/>
+        <g id="hhead"><ellipse cx="100" cy="68" rx="31" ry="38" fill="url(#face)" stroke="#e7b54a" stroke-opacity=".55" stroke-width="1.5"/>
+        <path d="M68 62c0-26 14-38 32-38s33 12 33 38c-6-12-16-17-33-17s-26 6-32 17z" fill="#14171c"/>
+        <g clip-path="url(#hc)"><rect id="hscan" x="60" y="20" width="80" height="22" fill="url(#scan)"/></g>
+        <ellipse id="heyeL" cx="88" cy="66" rx="5" ry="4" fill="#4fd1ff"/><ellipse id="heyeR" cx="112" cy="66" rx="5" ry="4" fill="#4fd1ff"/>
+        <ellipse id="hmouth" cx="100" cy="88" rx="9" ry="1.5" fill="#e7b54a"/>
+        <circle cx="70" cy="72" r="2" fill="#e7b54a" opacity=".7"/><circle cx="130" cy="72" r="2" fill="#e7b54a" opacity=".7"/></g>
+      </svg>
+      <div class="spons">PRESENTED BY · YOUR SPONSOR</div>
+      <div class="lower"><div class="tag">AI HOST · NOOR</div><div class="cap" id="cap"></div></div>
+    </div>
+    <div class="chat"><div class="chathead">LIVE CHAT</div><div id="chatlog"></div><form id="chatform"><input placeholder="Say something…" maxlength="80"></form></div>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+/* ---------- core helpers ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const fmt=s=>{s=Math.ceil(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+
+const FIELD=1000;
+const GAMES={
+ lock:{key:'lock',name:'Lockpick',skill:'Spatial reasoning',time:150,
+  how:'Slide the tiles into order 1–8, with the gap in the bottom-right corner. Tap a tile next to the gap to move it. Faster and fewer moves scores higher.'},
+ pattern:{key:'pattern',name:'Pattern Breaker',skill:'Logic',time:90,
+  how:'Six number sequences, each built on a hidden rule. Work out the rule and pick the next number. One shot per sequence — accuracy first, then speed.'},
+ memory:{key:'memory',name:'Memory Grid',skill:'Memory',time:120,
+  how:'Cells light up for a few seconds. When they go dark, tap the same cells from memory. Five levels, and the grid keeps growing.'},
+ laser:{key:'laser',name:'Laser Maze',skill:'Planning',time:180,
+  how:'Tap mirrors to flip them ( / ↔ \\ ) so the laser travels from the red emitter to the gold lock. The beam is invisible until you press FIRE — plan it in your head. Each extra shot costs points. Three mazes.'},
+ lights:{key:'lights',name:'Blackout',skill:'Spatial logic',time:150,
+  how:'Every tap flips a light AND its neighbours above, below, left and right. Switch every light off. Fewer taps and a faster finish score higher.'},
+ math:{key:'math',name:'Number Rush',skill:'Mental maths',time:90,
+  how:'Ten quick calculations — watch the order of operations (× and ÷ before + and −). Pick the right answer. Accuracy first, then speed.'},
+ simon:{key:'simon',name:'Echo',skill:'Memory',time:120,
+  how:'Four pads flash in a sequence. Repeat it exactly. Every round the sequence gets one step longer and faster. One mistake and your run ends.'},
+ hanoi:{key:'hanoi',name:'Tower Shift',skill:'Planning',time:150,
+  how:'Move the whole tower from the left peg to the right peg. Tap a peg to lift its top disk, tap another to drop it. A bigger disk can never sit on a smaller one. 31 moves is perfect.'},
+ vault:{key:'vault',name:'Code Breaker',skill:'Deduction',time:240,
+  how:'Deduce the secret 5-digit code (all digits different). After each guess you get: ● = right digit in the right place, ○ = right digit in the wrong place. You never learn which digits — only how many. 12 guesses max.'}
+};
+const CUTS=[[500,'Top 500 advance'],[250,'Top 250 advance'],[100,'Top 100 advance'],[10,'Top 10 reach the final'],[1,'Winner enters The Vault']];
+const LINEUPS=[{name:'Lineup A',keys:['lock','pattern','memory','laser','vault']},{name:'Lineup B',keys:['lights','math','simon','hanoi','vault']}];
+let STAGES=[];
+function applyLineup(li){STAGES=LINEUPS[li].keys.map((k,i)=>Object.assign({},GAMES[k],{cut:CUTS[i][0],cutLabel:CUTS[i][1]}))}
+applyLineup(0);
+const CASH_SET=[50,100,250,500,750,1000,2500,5000,7500,10000,15000,25000,40000,50000,75000,100000].map(v=>['AED '+v.toLocaleString(),v]);
+const PRIZE_SET=[['Coffee for a month',150],['Cinema for 2',200],['Brunch for 2',400],['Wireless earbuds',800],['Smartwatch',1500],['Games console',2200],['Staycation for 2',3000],['Latest smartphone',4500],['Laptop',6000],['E-scooter',7500],['Designer watch',12000],['A year of free fuel',15000],['Maldives trip for 2',20000],['50g gold bar',25000],['Sports motorbike',45000],['Brand-new SUV',120000]];
+// simulated field calibration (mean, sd) per stage
+const STAGE_MEAN=[500,480,560,420,230], STAGE_SD=[170,170,160,170,170];
+const NAMES=['Falcon','Saqr','Nova','Dune','Atlas','Cipher','Orbit','Layla','Rook','Echo','Mirage','Onyx','Pixel','Raven','Sultan','Titan','Vega','Wadi','Zen','Noor','Jinn','Ghost','Blaze','Karak','Majlis','Sahara','Qamar','Rimal','Hawk','Lynx'];
+
+let SEED=20261112, bots=[], state=null, tmr=null;
+
+function makeBots(){
+  const r=mulberry32(SEED^0x9e3779b9);
+  const g=()=>{let u=0;for(let k=0;k<6;k++)u+=r();return (u-3)/0.7071};
+  bots=[];
+  for(let i=0;i<FIELD-1;i++){
+    const b={name:NAMES[Math.floor(r()*NAMES.length)]+'_'+(Math.floor(r()*98)+2),skill:g(),scores:[],alive:true};
+    for(let s=0;s<5;s++)b.scores[s]=Math.round(clamp(STAGE_MEAN[s]+STAGE_SD[s]*(0.75*b.skill+0.66*g()),0,1000));
+    bots.push(b);
+  }
+}
+
+/* ---------- puzzle generators (pure) ---------- */
+function adj(i){const rr=i/3|0,c=i%3,res=[];if(rr>0)res.push(i-3);if(rr<2)res.push(i+3);if(c>0)res.push(i-1);if(c<2)res.push(i+1);return res}
+const slideSolved=b=>b.every((v,k)=>v===(k<8?k+1:0));
+function genSlide(r){
+  let b,e;
+  do{b=[1,2,3,4,5,6,7,8,0];e=8;let last=-1;
+    for(let k=0;k<90;k++){const nb=adj(e).filter(x=>x!==last);const n=nb[Math.floor(r()*nb.length)];b[e]=b[n];b[n]=0;last=e;e=n}
+  }while(slideSolved(b)||b.filter((v,k)=>v&&v===k+1).length>3);
+  return b;
+}
+
+function genSeqs(r){
+  const ri=(a,b)=>a+Math.floor(r()*(b-a+1));
+  const types=[
+    ()=>{const a=ri(2,9),d=ri(2,5),dd=ri(2,4);let s=[a],x=a,k=d;for(let i=0;i<5;i++){x+=k;k+=dd;s.push(x)}return s},          // growing gaps
+    ()=>{const a=ri(1,4),m=ri(2,3),c=[-1,1,2][ri(0,2)];let s=[a];for(let i=0;i<5;i++)s.push(s[i]*m+c);return s},               // ×m + c
+    ()=>{const a=ri(1,5),b=ri(2,7);let s=[a,b];for(let i=0;i<4;i++)s.push(s[i]+s[i+1]);return s},                            // sum of previous two
+    ()=>{const k=ri(-3,5),o=ri(1,3);let s=[];for(let i=0;i<6;i++){const n=i+o;s.push(n*n+k)}return s},                        // squares + k
+    ()=>{const a=ri(10,30),d1=ri(2,6),b=ri(40,60),d2=ri(3,7);let s=[];for(let i=0;i<6;i++)s.push(i%2?b-d2*((i-1)/2):a+d1*(i/2));return s}, // two interleaved
+    ()=>{const a=ri(2,5),p=ri(2,3),q=ri(1,4);let s=[a];for(let i=0;i<5;i++)s.push(i%2===0?s[i]*p:s[i]+q);return s}            // alternate ×p, +q
+  ];
+  return shuffle(types,r).map(f=>{
+    const s=f(),ans=s[5],last=s[4],prev=s[3];
+    const cand=[2*last-prev,ans+1,ans-1,ans+2,ans-2,ans+3,ans-3,ans+5,ans-4];
+    const pool=[];if(cand[0]!==ans&&cand[0]>=0&&Math.abs(cand[0]-ans)<ans)pool.push(cand[0]);
+    shuffle(cand.slice(1),r).forEach(c=>{if(c!==ans&&!pool.includes(c))pool.push(c)});
+    return {shown:s.slice(0,5),answer:ans,options:shuffle([ans,...pool.slice(0,3)],r)};
+  });
+}
+
+const DIRS=[[-1,0],[0,1],[1,0],[0,-1]]; // N E S W
+const reflect=(d,m)=>m===0?[1,0,3,2][d]:[3,2,1,0][d]; // m 0 = '/', 1 = '\'
+const LN=7;
+function traceGrid(grid,sr){
+  let y=sr,x=0,d=1;const cells=[];
+  for(let s=0;s<300;s++){
+    if(y<0||x<0||y>=LN||x>=LN)return{cells,hit:false,exit:d};
+    const c=grid[y][x];
+    if(c&&c.t==='wall'){cells.push({y,x,stop:'wall',d});return{cells,hit:false}}
+    cells.push({y,x,d});
+    if(c&&c.t==='target')return{cells,hit:true};
+    if(c&&c.t==='mirror')d=reflect(d,c.m);
+    y+=DIRS[d][0];x+=DIRS[d][1];
+  }
+  return{cells,hit:false};
+}
+function genLaser(r,minTurns,minLen,decoys,walls){
+  for(let tries=0;tries<2000;tries++){
+    const sr=Math.floor(r()*LN);let y=sr,x=0,d=1,turns=0,len=0,ok=false;
+    const grid=Array.from({length:LN},()=>Array(LN).fill(null));const vis=new Set();const path=[];
+    while(len<LN*LN){
+      vis.add(y*LN+x);path.push([y,x]);len++;
+      if(len>=minLen&&turns>=minTurns&&(r()<0.4||len>minLen+6)&&!(x===0&&d===3)){grid[y][x]={t:'target'};ok=true;break}
+      const lr=r()<0.5?[(d+3)%4,(d+1)%4]:[(d+1)%4,(d+3)%4];
+      const cand=r()<0.5?[...lr,d]:[d,...lr];
+      let moved=false;
+      for(const nd of cand){
+        const ny=y+DIRS[nd][0],nx=x+DIRS[nd][1];
+        if(ny<0||nx<0||ny>=LN||nx>=LN||vis.has(ny*LN+nx))continue;
+        if(nd!==d){const m=reflect(d,0)===nd?0:1;grid[y][x]={t:'mirror',m,sol:m,path:true};turns++}
+        y=ny;x=nx;d=nd;moved=true;break;
+      }
+      if(!moved)break;
+    }
+    if(!ok)continue;
+    if(!traceGrid(grid,sr).hit)continue;
+    const free=shuffle([...Array(LN*LN).keys()].filter(k=>!vis.has(k)),r);
+    if(free.length<decoys+walls)continue;
+    free.slice(0,decoys).forEach(k=>grid[k/LN|0][k%LN]={t:'mirror',m:r()<.5?0:1});
+    free.slice(decoys,decoys+walls).forEach(k=>grid[k/LN|0][k%LN]={t:'wall'});
+    // scramble every mirror; make sure it starts unsolved with several wrong path mirrors
+    const pathM=[];grid.forEach(row=>row.forEach(c=>{if(c&&c.t==='mirror'){c.m=r()<.5?0:1;if(c.path)pathM.push(c)}}));
+    let guard=0;
+    while((traceGrid(grid,sr).hit||traceGrid(grid,sr).cells.length>len-2)&&guard<20){const c=pathM[Math.floor(r()*pathM.length)];c.m^=1;guard++}
+    if(traceGrid(grid,sr).hit)continue;
+    return{grid,sr,turns,len};
+  }
+  return null;
+}
+
+function genCode(r){return shuffle([0,1,2,3,4,5,6,7,8,9],r).slice(0,5)}
+function feedback(code,g){let a=0,b=0;g.forEach((v,i)=>{if(code[i]===v)a++;else if(code.includes(v))b++});return[a,b]}
+
+const LO_DIRS=[[0,0],[1,0],[-1,0],[0,1],[0,-1]];
+function loPress(arr,k){const y=k/5|0,x=k%5;LO_DIRS.forEach(([dy,dx])=>{const yy=y+dy,xx=x+dx;if(yy>=0&&yy<5&&xx>=0&&xx<5)arr[yy*5+xx]^=1})}
+function genLights(r){const on=Array(25).fill(0);const sol=shuffle([...Array(25).keys()],r).slice(0,6);sol.forEach(k=>loPress(on,k));return{on,sol}}
+function genMath(r){const ri=(a,b)=>a+Math.floor(r()*(b-a+1));
+  const forms=[()=>{const a=ri(6,19),b=ri(3,9),c=ri(5,40);return[`${a} × ${b} + ${c}`,a*b+c]},()=>{const a=ri(6,19),b=ri(3,9),c=ri(5,40);return[`${a} × ${b} − ${c}`,a*b-c]},
+   ()=>{const a=ri(4,15),b=ri(4,15),c=ri(3,8);return[`(${a} + ${b}) × ${c}`,(a+b)*c]},()=>{const a=ri(11,25),b=ri(10,99);return[`${a}² − ${b}`,a*a-b]},
+   ()=>{const b=ri(3,9),q=ri(6,24),c=ri(5,60);return[`${b*q} ÷ ${b} + ${c}`,q+c]},()=>{const a=ri(12,49),b=ri(12,49),c=ri(2,6);return[`${a} + ${b} × ${c}`,a+b*c]}];
+  const out=[];for(let i=0;i<10;i++){const [q,ans]=forms[ri(0,forms.length-1)]();const cand=shuffle([ans+1,ans-1,ans+10,ans-10,ans+2,ans-9,ans+11],r).filter((v,k,a)=>v!==ans&&a.indexOf(v)===k).slice(0,3);out.push({q,answer:ans,options:shuffle([ans,...cand],r)})}return out}
+function genSimon(r){return Array.from({length:12},()=>Math.floor(r()*4))}
+function hanoiMoves(n,a,b,c,out){if(n===0)return out;hanoiMoves(n-1,a,c,b,out);out.push([a,c]);hanoiMoves(n-1,b,a,c,out);return out}
+if(typeof module!=='undefined')module.exports={mulberry32,genSlide,genSeqs,genLaser,traceGrid,genCode,feedback,slideSolved,adj,reflect};
+
+/* ---------- UI ---------- */
+if(typeof document!=='undefined'){
+const $=s=>document.querySelector(s);
+const app=$('#app');
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
+function button(label,cls,fn){const b=el('button','btn '+(cls||''),label);b.onclick=fn;return b}
+function flash(msg,type){const f=$('#flash');if(!f)return;f.textContent=msg;f.style.color={g:'var(--green)',r:'var(--red)',a:'var(--amber)'}[type]||'var(--text)'}
+
+function resetRun(seed){const sc=schedule();applyLineup(gameCfg(sc.num).lineup);SEED=seed!=null?seed:20261112+sc.num*101;makeBots();state={prize:null,prizeHow:'',scores:[],ranks:[],fields:[],adv:[],practice:false,elimAt:-1,board:null,spectator:false}}
+function newRun(seed){resetRun(seed);home()}
+$('#logo').onclick=()=>{clearInterval(tmr);document.onkeydown=null;home()};
+$('#navPlay').onclick=()=>home();$('#navWin').onclick=()=>winnersPage();$('#navGames').onclick=()=>{home();setTimeout(()=>{const l=document.getElementById('lineup');if(l)l.scrollIntoView({behavior:'smooth'})},60)};
+$('#navPrizes').onclick=()=>home('prizes');$('#navHi').onclick=()=>go('highlights');$('#navAcc').onclick=()=>go('account');$('#navCreator').onclick=()=>go('creator');$('#navRules').onclick=()=>home('rules');
+function nav(id){document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.id===id))}
+$('#chatform').onsubmit=e=>{e.preventDefault();const i=e.target.querySelector('input');if(i.value.trim()){chatPush(meName(),i.value.trim().replace(/</g,'&lt;'),true);i.value='';if(LIVE&&Math.random()<0.6)T(()=>host(['Love the energy, '+meName()+'!','Good luck tonight, '+meName()+'!',meName()+' is in the chat — welcome!'][Math.floor(Math.random()*3)]),1800)}};
+
+/* ---------- site: schedule, registration, winners ---------- */
+var SIM=null,REG=null,WINX=[],OVR={lineup:null,vault:null};
+function gameCfg(num){const w=Math.floor((num-1)/2);return{lineup:OVR.lineup!=null?OVR.lineup:w%2,vault:OVR.vault||(w%2===0?'cash':'prizes')}}
+function vaultSet(){return gameCfg(schedule().num).vault==='prizes'?PRIZE_SET:CASH_SET}
+function topVault(){const v=vaultSet();return v[v.length-1][0]}
+try{REG=JSON.parse(localStorage.getItem('vault_reg')||'null')}catch(e){}
+try{WINX=JSON.parse(localStorage.getItem('vault_winners')||'[]')}catch(e){}
+function saveLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function setHash(h){try{if(location.hash!==h)location.hash=h}catch(e){}}
+const BASE=Date.UTC(2026,7,3,17,0); // Mon 3 Aug 2026, 9:00 PM UAE = Game #1
+function gameTimes(){const out=[];for(let t=BASE;t<Date.now()+21*864e5;t+=864e5){const d=new Date(t).getUTCDay();if(d===1||d===4)out.push(t)}return out}
+function schedule(){
+  const now=Date.now(),list=gameTimes();const idx=list.findIndex(t=>t+3600e3>now);let t=list[idx];const num=idx+1;
+  if(SIM==='reg'){t=Math.floor(now/864e5)*864e5+17*3600e3;while(t<now+3600e3)t+=864e5}if(SIM==='live')t=now-30e3;
+  const regOpen=t-48*3600e3;const status=now>=t?'live':now>=regOpen?'open':'soon';
+  return{t,num,regOpen,status,id:'G'+num,past:list.slice(0,idx).map((x,k)=>({t:x,num:k+1}))};
+}
+const fmtDate=t=>new Date(t).toLocaleString('en-GB',{timeZone:'Asia/Dubai',weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit',hour12:true}).replace(' am',' AM').replace(' pm',' PM');
+function cdStr(ms){ms=Math.max(0,ms);const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4),x=Math.floor(ms%6e4/1e3);return(d?d+'d ':'')+[h,m,x].map(v=>String(v).padStart(2,'0')).join(':')}
+const isReg=sch=>REG&&REG.id===sch.id;
+function meName(){return REG&&REG.username?REG.username:'You'}
+const HOWS=["Opened The Vault with 1:12 left","Opened The Vault with 0:48 left","Opened The Vault with 1:31 left — trusted the Inside Man","Opened The Vault with 0:22 left — called the bluff","Opened The Vault with 0:57 left","Opened The Vault with 1:05 left"];
+function winners(){
+  const sch=schedule();
+  const past=sch.past.slice(-16).reverse().map(g=>{const r=mulberry32(g.num*7919+3);let prize,label;
+    const isP=Math.floor((g.num-1)/2)%2===1,TI=vaultTiers(isP);const roll=r();const ti=roll<0.3?0:roll<0.55?1:roll<0.75?2:roll<0.9?3:roll<0.97?4:5;const deal=TI[ti];prize=deal[2];label=isP?deal[1]:deal[1]+' cash';
+    const secs=ti===0?52+Math.floor(r()*23):Math.min(170,TI[ti-1][0]+1+Math.floor(r()*19));
+    return{num:g.num,label,t:g.t,name:NAMES[Math.floor(r()*NAMES.length)]+'_'+(Math.floor(r()*98)+2),prize,how:`Opened The Vault in ${fmt(secs)}${r()<0.5?' — trusted the Inside Man':' — called the bluff'}`,players:Math.round(900+r()*1400)}});
+  return[...WINX.slice().reverse(),...past];
+}
+function addWinner(name,prize,how,label){const sch=schedule();WINX.push({num:sch.num,t:Date.now(),name,prize,how,label,players:FIELD,demo:true,me:name===meName()&&!state.spectator&&!LIVE_AUTO});saveLS('vault_winners',WINX)}
+var LIVE_AUTO=false;
+
+const CAP=1000;
+function vaultTiers(isPrize){return isPrize?[[75,'Brand-new SUV',120000],[95,'Sports motorbike',45000],[115,'50g gold bar',25000],[135,'Maldives trip for 2',20000],[150,'A year of free fuel',15000],[Infinity,'Latest smartphone',4500]]
+  :[[75,'AED 100,000',100000],[95,'AED 60,000',60000],[115,'AED 35,000',35000],[135,'AED 15,000',15000],[150,'AED 5,000',5000],[Infinity,'AED 1,000',1000]]}
+const winTxt=t=>t===Infinity?'Guaranteed minimum':'Open it within '+fmt(t);
+const COUNTRIES=['Select your country','United Arab Emirates','Saudi Arabia','Qatar','Kuwait','Bahrain','Oman','Egypt','Jordan','Lebanon','United Kingdom','Ireland','Germany','France','Italy','Spain','Netherlands','India','Pakistan','Philippines','Canada','Australia','New Zealand','South Africa','Nigeria','Kenya','Other'];
+var PROF={history:[],points:0,correct:0,regs:[],notif:{wa:true,sms:false,email:true},verify:'none',since:null,username:null,country:null};
+try{Object.assign(PROF,JSON.parse(localStorage.getItem('vault_profile')||'{}'))}catch(e){}
+function saveProf(){saveLS('vault_profile',PROF)}
+function refFromUrl(){try{const m=/[?&]ref=([A-Za-z0-9_]{1,16})/.exec(location.search);return m?m[1]:''}catch(e){return ''}}
+const USER_TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return 'Asia/Dubai'}})();
+function localNote(t,plain){if(USER_TZ==='Asia/Dubai')return '';let l;try{l=new Date(t).toLocaleString('en-GB',{weekday:'short',hour:'numeric',minute:'2-digit',hour12:true})}catch(e){return ''}return plain?` (${l} your time)`:`· ${l.toUpperCase()} YOUR TIME`}
+function calButtons(sch){const st=new Date(sch.t),en=new Date(sch.t+3600e3);const f=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const title=`The Vault — Game #${sch.num}`,det='Free live game show. Five skill games, one vault. Be online 5 minutes early.';
+  const g=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${f(st)}/${f(en)}&details=${encodeURIComponent(det)}`;
+  const ics=`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${f(st)}\nDTEND:${f(en)}\nSUMMARY:${title}\nDESCRIPTION:${det}\nBEGIN:VALARM\nTRIGGER:-PT10M\nACTION:DISPLAY\nDESCRIPTION:The Vault starts in 10 minutes\nEND:VALARM\nEND:VEVENT\nEND:VCALENDAR`;
+  const d=el('div','row');d.style.justifyContent='center';d.innerHTML=`<a class="btn ghost sm" href="${g}" target="_blank" rel="noopener">📅 Add to Google Calendar</a><a class="btn ghost sm" href="data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}" download="the-vault-game-${sch.num}.ics">📅 Apple / Outlook (.ics)</a>`;return d}
+function go(p){const m={creator:creatorPage,play:()=>home(),games:()=>$('#navGames').click(),prizes:()=>home('prizes'),rules:()=>home('rules'),winners:winnersPage,faq:faqPage,terms:()=>legalPage('terms'),privacy:()=>legalPage('privacy'),contact:contactPage,account:accountPage,partner:partnerPage,highlights:highlightsPage};(m[p]||m.play)()}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(a){e.preventDefault();go(a.dataset.go)}});
+function footerEl(){return el('footer','ft2',`<div class="fcols"><div><div class="logo" style="margin-bottom:10px"><b class="lt">THE <span>VAULT</span></b></div><p class="mute small" style="max-width:260px;line-height:1.6">A free live game show. Five games, one vault, every Monday &amp; Thursday at 9 PM UAE.</p></div>
+  <div><b>Play</b><a data-go="play">Next game</a><a data-go="games">This week's games</a><a data-go="prizes">Prizes</a><a data-go="rules">Rules</a><a data-go="winners">Winners</a></div>
+  <div><b>Players</b><a data-go="account">My account</a><a data-go="faq">FAQ</a><a data-go="highlights">Highlights</a></div>
+  <div><b>Company</b><a data-go="partner">Partner with us</a><a data-go="contact">Contact</a><a data-go="terms">Terms &amp; official rules</a><a data-go="privacy">Privacy</a><a data-go="creator" class="mute small" style="margin-top:8px">Creator access</a></div></div>
+  <div class="fbot"><span>© The Vault · Presented by YOUR SPONSOR</span><span>Free to enter · 18+ · Eligible countries only · Play responsibly</span></div>`)}
+function pageStart(navId,hash,eyebrow,title,lead){CTRIAL=false;clearInterval(tmr);document.onkeydown=null;stopLive();nav(navId);setHash(hash);app.innerHTML='';window.scrollTo(0,0);
+  app.appendChild(el('div','pagehead',`<div class="eyebrow">${eyebrow}</div><div class="display" style="font-size:clamp(30px,4.6vw,52px)">${title}</div>${lead?`<p class="lead">${lead}</p>`:''}`))}
+const BADGES=[['🎟','First game','Played your first live game',p=>p.history.length>=1],['🛡','Survivor','Made it past Stage 1',p=>p.history.some(h=>h.stage>=2)],['💯','Top 100','Reached Stage 4',p=>p.history.some(h=>h.stage>=4)],['🔟','Finalist','Reached the final 10',p=>p.history.some(h=>h.stage>=5)],['🔐','Champion','Opened The Vault',p=>p.history.some(h=>h.champ)],['🔮','Oracle','5 correct predictions',p=>p.correct>=5]];
+function addPoints(n,ok){PROF.points+=n;if(ok)PROF.correct++;saveProf();const t=el('div','toast',`🔮 ${ok?'+'+n+' prediction points!':'Wrong call — no points'}`);document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+const PRIZE_ICON={'Coffee for a month':'☕','Cinema for 2':'🎬','Brunch for 2':'🥂','Wireless earbuds':'🎧','Smartwatch':'⌚','Games console':'🎮','Staycation for 2':'🏨','Latest smartphone':'📱','Laptop':'💻','E-scooter':'🛴','Designer watch':'💎','A year of free fuel':'⛽','Maldives trip for 2':'🏝️','50g gold bar':'🥇','Sports motorbike':'🏍️','Brand-new SUV':'🚙'};
+const PAY_STEPS=[['📺','You win live','Your name goes up on screen the moment The Vault opens, and you get an instant SMS and email confirming your prize.'],
+ ['📞','We call you within 24 hours','Our prize team calls you from the official number shown in your account to congratulate you and book your verification.'],
+ ['🪪','Verify your identity','Upload a government-issued photo ID (passport or national ID) in your account and confirm the mobile number you registered with. The name must match your registration.'],
+ ['💸','Receive your prize','Cash is paid by bank transfer to an account in your name within 7 working days, converted to your local currency. Physical prizes are delivered — or paid as cash value where shipping isn’t possible.']];
+function regCount(sch){if(sch.status==='soon')return 0;const p=clamp((Date.now()-sch.regOpen)/(sch.t-sch.regOpen),0,1);const r=mulberry32(sch.num*31);
+  let n=sch.status==='live'?CAP:Math.round(CAP*(0.05+0.92*Math.pow(p,0.55))+r()*20);n=Math.min(CAP,n);return n}
+function gameArt(k){
+  const bg=`<rect width="320" height="180" fill="#090b0f"/><rect width="320" height="180" fill="url(#gl${k})"/>`;
+  const defs=`<defs><radialGradient id="gl${k}" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#e7b54a" stop-opacity=".16"/><stop offset="1" stop-color="#e7b54a" stop-opacity="0"/></radialGradient><filter id="gw${k}"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  const G='#e7b54a',C='#4fd1ff',T='#2a2f38';let x='';
+  if(k==='lock'){const v=[1,2,3,4,0,6,7,5,8];v.forEach((n,i)=>{const px=104+(i%3)*38,py=33+Math.floor(i/3)*38;x+=n?`<rect x="${px}" y="${py}" width="34" height="34" rx="7" fill="#232831" stroke="#3a404b"/><text x="${px+17}" y="${py+23}" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="17" fill="${n===i+1?'#3ecf8e':G}">${n}</text>`:`<rect x="${px}" y="${py}" width="34" height="34" rx="7" fill="none" stroke="#3a404b" stroke-dasharray="4 4"/>`});x+=`<path d="M159 128 v-36" stroke="${C}" stroke-width="3" marker-end="url(#ar)" filter="url(#gw${k})"/><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="${C}"/></marker></defs>`}
+  if(k==='pattern'){[2,5,14,41].forEach((n,i)=>{x+=`<circle cx="${45+i*62}" cy="92" r="24" fill="#1a1e25" stroke="#3a404b"/><text x="${45+i*62}" y="99" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="18" fill="#eef0f3">${n}</text>`;if(i<3)x+=`<path d="M${58+i*62} 64 q18 -22 36 0" fill="none" stroke="${C}" stroke-width="2"/><text x="${76+i*62}" y="44" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="${C}">×3−1</text>`});x+=`<circle cx="293" cy="92" r="24" fill="#2a2410" stroke="${G}" stroke-width="2" filter="url(#gw${k})"/><text x="293" y="100" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="20" fill="${G}">?</text>`}
+  if(k==='memory'){const lit=[1,7,9,13,16,22];for(let i=0;i<25;i++){const px=105+(i%5)*23,py=33+Math.floor(i/5)*23;x+=`<rect x="${px}" y="${py}" width="20" height="20" rx="4" fill="${lit.includes(i)?G:'#1f242c'}" ${lit.includes(i)?`filter="url(#gw${k})"`:''}/>`}}
+  if(k==='laser'){for(let y=0;y<4;y++)for(let c=0;c<7;c++)x+=`<rect x="${62+c*30}" y="${30+y*30}" width="28" height="28" rx="4" fill="#12151a"/>`;
+    const m=[[0,1,'/'],[2,1,'\\\\'],[2,3,'/'],[5,3,'\\\\'],[4,0,'/'],[1,2,'\\\\']];m.forEach(([c,y,o])=>{const px=62+c*30,py=30+y*30;x+=o==='/'?`<line x1="${px+6}" y1="${py+22}" x2="${px+22}" y2="${py+6}" stroke="#cfd6e2" stroke-width="3" stroke-linecap="round"/>`:`<line x1="${px+6}" y1="${py+6}" x2="${px+22}" y2="${py+22}" stroke="#cfd6e2" stroke-width="3" stroke-linecap="round"/>`});
+    x+=`<rect x="40" y="66" width="16" height="16" rx="3" fill="#ff5d6d"/><polyline points="56,74 76,74 76,44 136,44 136,134 226,134 226,104 256,104" fill="none" stroke="#ff4d6d" stroke-width="3" filter="url(#gw${k})"/><circle cx="268" cy="104" r="11" fill="#2a2410" stroke="${G}" stroke-width="2"/>`}
+  if(k==='lights'){const on=[0,2,6,7,8,12,16,18,22,24];for(let i=0;i<25;i++){const px=105+(i%5)*23,py=33+Math.floor(i/5)*23;x+=`<rect x="${px}" y="${py}" width="20" height="20" rx="4" fill="${on.includes(i)?G:'#1f242c'}" ${on.includes(i)?`filter="url(#gw${k})"`:''}/>`}x+=`<path d="M128 79h23v-23h23v23h23v23h-23v23h-23v-23h-23z" fill="none" stroke="${C}" stroke-width="2.5" stroke-dasharray="5 3"/>`}
+  if(k==='math'){x+=`<text x="160" y="80" text-anchor="middle" font-family="Unbounded" font-weight="700" font-size="28" fill="#eef0f3">17 × 4 − 9</text><text x="160" y="80" dx="118" font-family="Unbounded" font-weight="800" font-size="28" fill="${G}"></text>`;[59,77,49,58].forEach((n,i)=>{x+=`<rect x="${42+i*62}" y="106" width="52" height="34" rx="8" fill="${i===0?'#123b2a':'#1a1e25'}" stroke="${i===0?'#3ecf8e':'#3a404b'}"/><text x="${68+i*62}" y="129" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="16" fill="${i===0?'#3ecf8e':'#cfd6e2'}">${n}</text>`})}
+  if(k==='simon'){SIMC.forEach((c,i)=>{x+=`<rect x="${112+(i%2)*50}" y="${30+Math.floor(i/2)*62}" width="46" height="58" rx="12" fill="${c}" opacity="${i===1?1:.28}" ${i===1?`filter="url(#gw${k})"`:''}/>`});x+=`<text x="250" y="95" font-family="JetBrains Mono" font-size="12" fill="#8b93a1">round 7</text>`}
+  if(k==='hanoi'){[80,160,240].forEach(px=>x+=`<rect x="${px-3}" y="40" width="6" height="104" rx="3" fill="${T}"/><rect x="${px-38}" y="144" width="76" height="6" rx="3" fill="${T}"/>`);[[80,5,0],[80,4,1],[80,3,2],[240,2,0],[160,1,0]].forEach(([px,d,l])=>{const w=22+d*11;x+=`<rect x="${px-w/2}" y="${126-l*18}" width="${w}" height="16" rx="5" fill="${DISKC[d-1]}"/>`})}
+  if(k==='vault'){'31029'.split('').forEach((d,i)=>{x+=`<rect x="${70+i*38}" y="34" width="32" height="40" rx="7" fill="#1a1e25" stroke="${i<3?G:'#3a404b'}"/><text x="${86+i*38}" y="61" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="20" fill="${G}">${d}</text>`});
+    [['48057','●'],['31259','●●●○'],['30129','●●●○○']].forEach(([g,p],j)=>{x+=`<rect x="70" y="${88+j*24}" width="184" height="20" rx="5" fill="#12151a"/><text x="80" y="${102+j*24}" font-family="JetBrains Mono" font-size="12" letter-spacing="3" fill="#cfd6e2">${g}</text><text x="246" y="${102+j*24}" text-anchor="end" font-family="JetBrains Mono" font-size="12" fill="#3ecf8e">${p}</text>`})}
+  if(k==='room'){x+=`<text x="160" y="40" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="3" fill="#8b93a1">THE VAULT IS WORTH</text><text x="160" y="76" text-anchor="middle" font-family="Unbounded" font-weight="800" font-size="30" fill="#f5d27a" filter="url(#gw${k})">AED 100,000</text><rect x="60" y="88" width="200" height="8" rx="4" fill="#1f242c"/><rect x="60" y="88" width="143" height="8" rx="4" fill="${G}"/><text x="160" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#4fd1ff">⏱ 0:42 LEFT FOR THE GRAND PRIZE</text>`;
+    ['🔓','🔓','🔒'].forEach((ic,i)=>{x+=`<rect x="${70+i*62}" y="122" width="54" height="40" rx="9" fill="${i<2?'#10261c':'#1a1e25'}" stroke="${i<2?'#1f5a3d':G}"/><text x="${97+i*62}" y="148" text-anchor="middle" font-size="16">${ic}</text>`});
+    x+=`<rect x="250" y="120" width="62" height="44" rx="10" fill="#0c1a22" stroke="${C}"/><text x="281" y="140" text-anchor="middle" font-size="16">🕵️</text><text x="281" y="156" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="${C}">INSIDE MAN</text>`}
+  return `<svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice">${defs}${bg}${x}</svg>`;
+}
+const GAME_RULES={
+ lock:['Tap a tile next to the gap to slide it','Score = speed + fewest moves'],pattern:['6 sequences, 4 options each','A wrong pick can’t be changed'],
+ memory:['5 levels, grids up to 6×6','Wrong taps cost you that cell'],laser:['3 mazes; walls block the beam','Every extra shot costs 25 points'],
+ lights:['Each tap flips a plus-shape of lights','Fewer taps + faster = higher score'],math:['10 questions, 4 options each','× and ÷ come before + and −'],
+ simon:['Starts at 3 flashes, grows to 12','One wrong pad ends your run'],hanoi:['5 disks, 3 pegs','Perfect solve is 31 moves'],
+ vault:['12 guesses, 4 minutes','Fewest guesses wins; time breaks ties']};
+const VDOOR=`<svg class="door" viewBox="0 0 400 400"><defs><radialGradient id="dg" cx="45%" cy="40%" r="65%"><stop offset="0" stop-color="#3a3f4a"/><stop offset=".7" stop-color="#1a1d24"/><stop offset="1" stop-color="#0d0f13"/></radialGradient><radialGradient id="dg2" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fbe3a6"/><stop offset=".5" stop-color="#e7b54a"/><stop offset="1" stop-color="#9c6f1e"/></radialGradient><filter id="dglow"><feGaussianBlur stdDeviation="10"/></filter></defs>
+ <circle class="glow" cx="200" cy="200" r="178" fill="#e7b54a" opacity=".22" filter="url(#dglow)"/>
+ <circle cx="200" cy="200" r="182" fill="#0d0f13" stroke="#3a404b" stroke-width="2"/><circle cx="200" cy="200" r="170" fill="url(#dg)" stroke="#e7b54a" stroke-opacity=".6" stroke-width="3"/>
+ ${Array.from({length:16},(_,i)=>{const a=i/16*Math.PI*2;return `<circle cx="${200+Math.cos(a)*156}" cy="${200+Math.sin(a)*156}" r="5" fill="#0d0f13" stroke="#e7b54a" stroke-opacity=".6"/>`}).join('')}
+ <g class="dial">${Array.from({length:60},(_,i)=>{const a=i/60*Math.PI*2,r1=i%5?128:120;return `<line x1="${200+Math.cos(a)*r1}" y1="${200+Math.sin(a)*r1}" x2="${200+Math.cos(a)*136}" y2="${200+Math.sin(a)*136}" stroke="#e7b54a" stroke-opacity="${i%5?.35:.8}" stroke-width="${i%5?1.5:2.5}"/>`}).join('')}</g>
+ <circle cx="200" cy="200" r="112" fill="none" stroke="#2a2f38" stroke-width="10"/>
+ <g class="wheel">${[0,60,120].map(d=>`<rect x="192" y="96" width="16" height="208" rx="8" fill="url(#dg2)" transform="rotate(${d} 200 200)"/>`).join('')}${[0,60,120,180,240,300].map(d=>`<circle cx="200" cy="96" r="13" fill="url(#dg2)" transform="rotate(${d} 200 200)"/>`).join('')}<circle cx="200" cy="200" r="38" fill="url(#dg2)"/><circle cx="200" cy="200" r="24" fill="#1a1d24" stroke="#9c6f1e" stroke-width="3"/></g>
+</svg>`;
+
+function home(view){
+  CTRIAL=false;view=view||'home';clearInterval(tmr);document.onkeydown=null;stopLive();nav(view==='prizes'?'navPrizes':view==='rules'?'navRules':'navPlay');setHash(view==='home'?'':'#'+view);
+  const sch0=schedule(),cfg=gameCfg(sch0.num);applyLineup(cfg.lineup);
+  app.innerHTML='';
+  const hero=el('section','hero');app.appendChild(hero);
+  const left=el('div','');const right=el('div','doorwrap',VDOOR);hero.append(left,right);
+  let last='';
+  const paint=()=>{const sch=schedule();const key=sch.status+sch.id+(isReg(sch)?1:0);const n=regCount(sch)+(isReg(sch)&&sch.status!=='live'?0:0);
+    const ms=Math.max(0,sch.t-Date.now());const parts=[Math.floor(ms/864e5),Math.floor(ms%864e5/36e5),Math.floor(ms%36e5/6e4),Math.floor(ms%6e4/1e3)];
+    if(key===last){document.querySelectorAll('.cdbox b').forEach((b,i)=>b.textContent=String(parts[i]).padStart(2,'0'));const rn=$('#rn');if(rn)rn.textContent=n.toLocaleString();const mt=$('#mt');if(mt)mt.style.width=(n/CAP*100)+'%';const sl=$('#sl');if(sl)sl.textContent=(CAP-n).toLocaleString();const ro=$('#ro');if(ro)ro.textContent=cdStr(sch.regOpen-Date.now());return}
+    last=key;
+    const pill=sch.status==='live'?'<span class="live"><i></i>LIVE NOW</span>':sch.status==='open'?'<span class="pill ok">REGISTRATION OPEN</span>':'<span class="pill pr">REGISTRATION OPENS SOON</span>';
+    let h=`<div class="eyebrow">GAME #${sch.num} · ${fmtDate(sch.t).toUpperCase()} UAE ${localNote(sch.t)} ${pill}</div>
+      <div class="display">Five games.<br>One <em>vault.</em></div>
+      <p class="lead">Free to enter. Pure skill. Every Monday &amp; Thursday at 9 PM, ${CAP.toLocaleString()} players battle through five live games — and the last one standing walks into The Vault.</p>`;
+    if(sch.status!=='live')h+=`<div class="cdlabel">GAME STARTS IN</div><div class="cdgrid">${['DAYS','HRS','MIN','SEC'].map((l,i)=>`<div class="cdbox"><b>${String(parts[i]).padStart(2,'0')}</b><span>${l}</span></div>`).join('')}</div>`;
+    const avc=['#e7b54a','#4fd1ff','#3ecf8e','#ff5d6d','#b48cff'];
+    if(sch.status==='soon')h+=`<div class="spots"><div class="top"><div><div class="num">${CAP.toLocaleString()} spots</div><div class="mute small">Registration opens <b style="color:var(--text)">${fmtDate(sch.regOpen)}</b> · in <span class="mono gold" id="ro">${cdStr(sch.regOpen-Date.now())}</span></div></div></div><div class="meter"><i style="width:0%"></i></div></div>`;
+    else h+=`<div class="spots"><div class="top"><div class="avs">${avc.map((c,i)=>`<i style="background:${c}">${'SNFLR'[i]}</i>`).join('')}</div><div style="flex:1"><div><span class="num" id="rn">${n.toLocaleString()}</span> <span class="mute">players registered</span></div><div class="mute small">${sch.status==='live'?'Registration closed — game in progress':`<span id="sl">${(CAP-n).toLocaleString()}</span> of ${CAP.toLocaleString()} spots left · closes at 9:00 PM`}</div></div></div><div class="meter"><i id="mt" style="width:${n/CAP*100}%"></i></div></div>`;
+    if(sch.status==='open'&&isReg(sch))h+=`<div class="regok" style="margin-bottom:18px">✓ You're registered as <b>${REG.username}</b>. Be online a few minutes before 9:00 PM.</div>`;
+    if(sch.status==='live')h+=`<p class="mute" style="margin:0 0 18px">${isReg(sch)?`You're registered as <b style="color:var(--text)">${REG.username}</b> — enter now to play.`:`Not registered for this game? Join as a <b style="color:var(--text)">spectator</b> — watch every stage live and chat.`}</p>`;
+    left.innerHTML=h;const r=el('div','row');
+    if(sch.status==='soon'){const b=button('REGISTRATION OPENS SOON','lg',null);b.disabled=true;r.append(b)}
+    if(sch.status==='open'&&!isReg(sch))r.append(button('REGISTER — IT’S FREE','lg',registerPage));
+    if(sch.status==='live')r.append(button(isReg(sch)?'ENTER THE GAME':'WATCH LIVE AS SPECTATOR','lg',()=>startLive(!isReg(sch))));
+    r.append(button('SEE THE GAMES','ghost lg',()=>$('#lineup').scrollIntoView({behavior:'smooth'})));
+    left.appendChild(r);
+  };
+  paint();tmr=setInterval(paint,1000);
+  // prize strip
+  app.appendChild(el('div','prize',`<div><div class="mute small mono">GAME #${sch0.num} · ${cfg.vault==='prizes'?'PRIZE WEEK':'CASH WEEK'} · TOP VAULT</div><b style="font-size:16px">${cfg.vault==='prizes'?'Open The Vault within 75 seconds to win a brand-new SUV':'Open The Vault within 75 seconds to win AED 100,000'}</b></div><div class="amt" style="text-align:right;font-family:Unbounded">${topVault()}</div>`));
+  // prizes this week
+  const pz=el('div','');pz.id='prizes';
+  {const isP=cfg.vault==='prizes',TI=vaultTiers(isP);
+    const tierHtml=`<div class="cashladder">${TI.map((x,i)=>`<div class="tier${i===0?' top':''}">${isP?`<div class="tpic">${PRIZE_ICON[x[1]]||'🎁'}</div>`:''}<div class="amt2">${x[1]}</div><div class="mute small">${winTxt(x[0])}${isP?` · worth AED ${x[2].toLocaleString()}`:''}</div>${i===0?'<span class="pill ok" style="margin-top:8px">GRAND PRIZE</span>':''}</div>`).join('')}</div>`;
+    const fin=isP?PRIZE_SET.filter(p=>!TI.some(x=>x[1]===p[0])).sort((a,b)=>b[1]-a[1]):null;
+    pz.innerHTML=`<div class="sec"><div class="eyebrow">GAME #${sch0.num} · ${isP?'PRIZE WEEK':'CASH WEEK'}</div><h2>This week's prizes</h2><p>The champion wins the grand prize by opening all three locks of The Vault within <b style="color:var(--gold2)">75 seconds</b> — a fast, clean run does it. Slower runs step down one level every 20 seconds, and there's always a guaranteed minimum.</p></div>
+     <h3 style="margin:0 0 10px">The Vault · champion's prize</h3>${tierHtml}
+     ${isP?`<h3 style="margin:26px 0 10px">Finalist prizes · places 2–10</h3><div class="prizegrid">${fin.slice(0,9).map((p,i)=>`<div class="pcard"><div class="pic">${PRIZE_ICON[p[0]]||'🎁'}</div><div><b>${p[0]}</b><div class="mute small">#${i+2} place · worth AED ${p[1].toLocaleString()}</div></div></div>`).join('')}<div class="pcard"><div class="pic">${PRIZE_ICON[fin[9][0]]}</div><div><b>${fin[9][0]}</b><div class="mute small">The Inside Man's bonus</div></div></div></div>`
+       :`<div class="pcard" style="margin-top:12px;max-width:420px"><div class="pic">🕵️</div><div><b>AED 500</b><div class="mute small">The Inside Man's bonus — if the champion leaves with less than half the grand prize</div></div></div>`}`;
+  }
+  const nx=gameCfg(sch0.num+2);pz.appendChild(el('p','mute small',`Next week (Game #${sch0.num+2}) is a <b style="color:var(--text)">${nx.vault==='prizes'?'prize week — top prize: Brand-new SUV':'cash week — top prize: AED 100,000'}</b>.`));pz.lastChild.style.marginTop='14px';
+  app.appendChild(pz);
+  // how it works
+  const hw=el('div','');hw.innerHTML=`<div class="sec"><div class="eyebrow">HOW IT WORKS</div><h2>From sign-up to The Vault</h2></div>
+   <div class="steps">${[['1','Register free','Registration opens 48 hours before each game. '+CAP.toLocaleString()+' spots, first come first served.'],['2','Play live','At 9 PM sharp every player gets the same puzzle at the same second.'],['3','Survive the cuts','500 → 250 → 100 → 10 → 1. Only skill moves you on.'],['4','Open The Vault','The champion opens three locks against the clock — within 75 seconds wins the grand prize.']].map(([n,t,d])=>`<div class="step"><div class="ic">${n}</div><b>${t}</b><span>${d}</span></div>`).join('')}</div>`;
+  app.appendChild(hw);
+  // lineup with pictures + rules
+  const lu=el('div','');lu.id='lineup';
+  lu.innerHTML=`<div class="sec"><div class="eyebrow">GAME #${sch0.num} LINEUP · ${LINEUPS[cfg.lineup].name.toUpperCase()}</div><h2>This game's five challenges</h2><p>The games change every week, so nobody can rehearse them — you'll see each puzzle for the first time when the clock starts. Only The Vault never changes.</p></div>`;
+  const grid=el('div','games');
+  STAGES.forEach((s,i)=>grid.appendChild(el('div','game',`<div class="art">${gameArt(s.key)}<span class="num">STAGE ${i+1}</span><span class="cutb">${s.cutLabel}</span></div><div class="body"><h4>${s.name}</h4><div class="tags"><span class="g">${s.skill.toUpperCase()}</span><span>⏱ ${fmt(s.time)}</span></div><p>${s.how}</p><ul>${(GAME_RULES[s.key]||[]).map(x=>`<li>${x}</li>`).join('')}</ul></div>`)));
+  grid.appendChild(el('div','game final',`<div class="art">${gameArt('room')}<span class="num">FINALE</span></div><div class="body" style="padding:26px"><h4 style="font-size:24px">The Vault</h4><div class="tags"><span class="g">1 PLAYER</span><span>3 LOCKS</span><span>2:30</span><span>${cfg.vault==='prizes'?'PRIZE WEEK':'CASH WEEK'}</span></div><p>Only the champion plays it. Open three locks — <b>Speed Run</b>, <b>Recall</b> and the <b>Final Code</b> — within <b>75 seconds</b> to win the grand prize. Slower runs step down one prize level every 20 seconds, mistakes add time penalties, and there's always a guaranteed minimum.</p><ul><li>Grand prize: <b style="color:var(--gold2)">${topVault()}</b> — open it within 1:15</li><li><b>The Inside Man:</b> before the last lock, a random spectator who has seen the code sends one tip — it might be the truth, or a bluff</li><li>The audience votes live: trust or bluff?</li></ul></div>`));
+  lu.appendChild(grid);app.appendChild(lu);
+  // how winners get paid
+  const pay=el('div','');pay.id='payout';
+  pay.innerHTML=`<div class="sec"><div class="eyebrow">WINNERS</div><h2>How the winner gets their prize</h2><p>Every champion is contacted by our prize team and paid the same way — no fees, no catches.</p></div>
+   <div class="steps">${PAY_STEPS.map(([i,t,d])=>`<div class="step"><div class="ic">${i}</div><b>${t}</b><span>${d}</span></div>`).join('')}</div>
+   <div class="scam"><b>🛡 Stay safe:</b> The Vault will <b>never</b> ask you to pay a fee, share a password or OTP, or give card details to receive a prize. If anyone does, it isn't us — report it.</div>`;
+  app.appendChild(pay);
+  // champions
+  const ws=winners().slice(0,3);const chs=el('div','');
+  chs.innerHTML=`<div class="sec"><div class="eyebrow">HALL OF CHAMPIONS</div><h2>Latest winners</h2></div><div class="champs">${ws.map((w,i)=>`<div class="champc${i===0?' first':''}"><div class="av">${w.name[0]}</div><b style="font-size:17px">${w.name}</b>${w.me?' <span class="pill ok">YOU</span>':''}<div class="mute small">Game #${w.num} · beat ${(w.players-1).toLocaleString()} players</div><div class="pz">${w.label||'AED '+w.prize.toLocaleString()}</div><div class="mute small" style="margin-top:4px">${w.how}</div></div>`).join('')}</div>`;
+  const cr=el('div','row');cr.style.marginTop='16px';cr.append(button('VIEW ALL WINNERS','ghost',winnersPage));chs.appendChild(cr);app.appendChild(chs);
+  // rules
+  app.appendChild(el('div','',`<div class="sec"><div class="eyebrow">THE RULES</div><h2>Fair play, every game</h2></div><div class="rulesgrid">${[
+   ['✓','Free to enter','No entry fee, ever. Prizes are funded by the sponsor, never by players. Winners are paid within 7 working days.'],
+   ['18','18+ · eligible countries','Open internationally to adults in countries where the game is permitted. One account per person, verified by mobile number. Winners verify their ID before payout.'],
+   ['⚖','Skill decides the champion','Same puzzles for everyone, released at the same second. Ties go to the faster solve.'],
+   ['?','No practice, no previews','Games rotate weekly and puzzles are new every game. You see them first when the clock starts.'],
+   ['👁','Not registered? Watch live','Spectators can follow every stage, see player cams and chat — registration is only needed to play.'],
+   ['🛡','Anti-cheat','Server-timed puzzles, one device per account, and review of impossible solve times.']].map(([i,t,d])=>`<div class="rule"><div class="ic">${i}</div><div><b>${t}</b><span>${d}</span></div></div>`).join('')}</div>`));
+  // prototype controls
+  const dm=el('div','card demo');dm.style.marginTop='54px';dm.innerHTML=`<h3>Prototype controls</h3><p class="mute small" style="margin:0 0 12px">Not part of the real site. The real schedule is Mon &amp; Thu at 9 PM UAE — use these to preview each state. Registrations and wins are saved in this browser only.</p>`;
+  const dr=el('div','row');
+  [['Real schedule',null],['Registration open','reg'],['Game is live now','live']].forEach(([l,v])=>dr.append(button(l+(SIM===v?' ✓':''),SIM===v?'':'ghost',()=>{SIM=v;home()})));
+  dr.append(button('Clear my registration','ghost',()=>{REG=null;try{localStorage.removeItem('vault_reg')}catch(e){};home()}));
+  const d2=el('div','row');d2.style.marginTop='10px';
+  [['Auto lineup',null],['Lineup A',0],['Lineup B',1]].forEach(([l,v])=>d2.append(button(l+(OVR.lineup===v?' ✓':''),OVR.lineup===v?'':'ghost',()=>{OVR.lineup=v;resetRun();home()})));
+  [['Auto vault',null],['Cash week','cash'],['Prize week','prizes']].forEach(([l,v])=>d2.append(button(l+(OVR.vault===v?' ✓':''),OVR.vault===v?'':'ghost',()=>{OVR.vault=v;home()})));
+  dm.append(dr,d2);app.appendChild(dm);
+  app.appendChild(footerEl());
+  if(view!=='home'){
+    clearInterval(tmr);const kids=[...app.children];
+    const keep=view==='prizes'?[1,2,5,9]:[3,4,7,9];
+    kids.forEach((k,i)=>{if(!keep.includes(i))k.remove()});
+    if(view==='rules'){const rl=kids[7],lu=kids[4];app.insertBefore(rl,kids[3]);const h=lu.querySelector('.sec h2');if(h)h.textContent="Game-by-game rules";}
+    const head=el('div','pagehead',view==='prizes'?`<div class="eyebrow">GAME #${sch0.num} · ${cfg.vault==='prizes'?'PRIZE WEEK':'CASH WEEK'}</div><div class="display" style="font-size:clamp(30px,4.6vw,52px)">What you can <em>win.</em></div><p class="lead">Every game is free to enter. One champion plays The Vault — and takes home whatever it's worth when the last lock opens.</p>`:`<div class="eyebrow">THE RULES</div><div class="display" style="font-size:clamp(30px,4.6vw,52px)">Play fair. <em>Play live.</em></div><p class="lead">Everything you need to know before game night: who can play, how the games work, and how the champion is decided.</p>`);
+    app.insertBefore(head,app.firstChild);
+    const first=app.querySelector('.sec');if(first)first.style.marginTop='24px';
+    window.scrollTo(0,0);
+  }
+}
+
+function registerPage(){
+  clearInterval(tmr);const sch=schedule();nav('navPlay');
+  if(sch.status==='soon'){home();return}
+  app.innerHTML='';const c=el('div','card');
+  c.innerHTML=`<div class="mute small mono">REGISTER · GAME #${sch.num}</div><h2 style="margin:6px 0 4px">Claim your spot</h2><p class="mute small" style="margin:0 0 18px">${fmtDate(sch.t)} UAE time${localNote(sch.t,true)} · Free to enter</p>
+   <form id="rf">
+    <div class="field"><label>Username (shown on the leaderboard)</label><input name="u" maxlength="16" placeholder="e.g. DesertFox" autocomplete="off"></div>
+    <div class="field"><label>Full name (for prize payment — never shown)</label><input name="n" maxlength="60"></div>
+    <div class="field"><label>Country of residence</label><select name="c">${COUNTRIES.map(x=>`<option>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Mobile number (with country code)</label><input name="p" placeholder="+44 7700 900123" inputmode="tel"></div>
+    <div class="field"><label>Email</label><input name="e" type="email"></div>
+    <div class="field"><label>Remind me before the game by</label><div class="row" style="gap:14px"><label class="check" style="margin:0"><input type="checkbox" name="rw" checked> WhatsApp</label><label class="check" style="margin:0"><input type="checkbox" name="rs"> SMS</label><label class="check" style="margin:0"><input type="checkbox" name="re" checked> Email</label></div></div>
+    <div class="field"><label>Invite code (optional)</label><input name="ref" maxlength="16" placeholder="A friend's username" value="${refFromUrl()}"></div>
+    <label class="check"><input type="checkbox" name="a"> I'm 18 or older and live in a country where The Vault is available.</label>
+    <label class="check"><input type="checkbox" name="t"> I agree to the game rules. One account per person; winners must verify their ID.</label>
+    <div class="err" id="rerr"></div>
+    <div class="row"><button class="btn" type="submit">REGISTER FOR GAME #${sch.num}</button><button class="btn ghost" type="button" id="rback">Back</button></div>
+   </form>`;
+  app.appendChild(c);$('#rback').onclick=home;
+  $('#rf').onsubmit=e=>{e.preventDefault();const f=e.target;const u=f.u.value.trim(),n=f.n.value.trim(),p=f.p.value.replace(/\s/g,''),em=f.e.value.trim();
+    const err=!/^[A-Za-z0-9_]{3,16}$/.test(u)?'Username: 3–16 letters, numbers or _':n.length<3?'Enter your full name':!/^\+\d{7,15}$/.test(p)?'Enter your mobile number with country code, e.g. +44 7700 900123':!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)?'Enter a valid email':f.c.value==='Select your country'?'Choose your country':!f.a.checked?'You must be 18+ and live in an eligible country':!f.t.checked?'Please accept the rules':'';
+    if(err){$('#rerr').textContent=err;return}
+    REG={id:sch.id,num:sch.num,username:u,name:n,phone:p,email:em,country:f.c.value,ref:f.ref.value.trim(),at:Date.now()};saveLS('vault_reg',REG);
+    PROF.username=u;PROF.country=f.c.value;PROF.since=PROF.since||Date.now();PROF.notif={wa:f.rw.checked,sms:f.rs.checked,email:f.re.checked};if(!PROF.regs.includes(sch.num))PROF.regs.push(sch.num);saveProf();
+    app.innerHTML='';const d=el('div','card center');
+    d.innerHTML=`<div class="mute small mono">GAME #${sch.num}</div><h1 class="gold">You're in, ${u}.</h1><p style="line-height:1.6">${fmtDate(sch.t)} UAE time${localNote(sch.t,true)}.<br><span class="mute">In the real site we'd verify your number with a one-time code, then remind you ${[PROF.notif.wa&&'on WhatsApp',PROF.notif.sms&&'by SMS',PROF.notif.email&&'by email'].filter(Boolean).join(', ')||'by email'} 1 hour and 10 minutes before the game.</span></p>`;
+    d.appendChild(calButtons(sch));
+    const r=el('div','row');r.style.cssText='justify-content:center;margin-top:12px';r.append(button('MY ACCOUNT','',()=>go('account')),button('SEE THE GAMES','ghost',()=>$('#navGames').click()));d.appendChild(r);app.appendChild(d)};
+}
+
+const FAQ=[
+ ['Game night','What happens if my internet drops in the middle of a stage?','Your progress is saved on our server as you play. If you reconnect before that stage’s timer ends, you carry on exactly where you left off. If you can’t get back in time, the score you had when you dropped counts. We can’t restart a stage for one player, because everyone plays at the same moment.'],
+ ['Game night','What device do I need?','Any recent phone, tablet or computer with an up-to-date Chrome, Safari, Edge or Firefox, and a stable connection (Wi-Fi, 4G or 5G). Ten minutes before the game the lobby runs a quick device check and tells you if anything needs fixing.'],
+ ['Game night','What time is the game where I live?','Games start at 9:00 PM UAE time (17:00 GMT) every Monday and Thursday. The website shows the time in your own time zone next to the UAE time.'],
+ ['Game night','What if two players tie?','Ties go to the faster finish time, measured to the hundredth of a second. If two players are still exactly tied at a cut-off, both go through to the next stage.'],
+ ['Game night','I’m not registered — can I still watch?','Yes. Anyone can join as a spectator: you see every stage, the player cams, the full leaderboard and the live chat, and you can make predictions for fun points.'],
+ ['Playing','Does it cost anything to play?','No. The Vault is free to enter, always. Prizes are paid for by our sponsors.'],
+ ['Playing','Can I practise the games beforehand?','No. The games change every week and every puzzle is new, so nobody can rehearse. The Games page explains how each challenge works, so you know the rules before the clock starts.'],
+ ['Playing','Why is each game limited to 1,000 players?','It keeps the show fast and fair, and keeps every stage’s cut-off meaningful. Spots are first come, first served when registration opens 48 hours before each game.'],
+ ['Playing','Can I have more than one account?','No. One account per person, verified by mobile number. Duplicate accounts are removed and any prize is cancelled.'],
+ ['Playing','Which countries can play?','The Vault is open to adults (18+) in countries where it is permitted. A few countries are excluded for legal reasons; you’ll see whether you’re eligible when you register.'],
+ ['The Vault','What is The Vault?','The finale, played only by the champion. Open three locks — Speed Run, Recall and the Final Code — within 75 seconds to win the grand prize. It’s designed so a strong, clean run makes it in time; slower runs step down one prize level every 20 seconds, mistakes add a few seconds, and there’s always a guaranteed minimum.'],
+ ['The Vault','Who is the Inside Man?','A randomly chosen spectator who is shown the Final Code. They send the champion one tip — which might be true or a bluff. The Inside Man wins a small bonus if the champion leaves with less than half the vault.'],
+ ['Prizes','How will I be contacted if I win?','You’ll get an instant SMS and email, and our prize team calls you within 24 hours from the official number shown in your account. We will never ask you for a fee, a password, a one-time code or card details.'],
+ ['Prizes','How are prizes paid internationally?','Cash prizes are paid by bank transfer to an account in your name within 7 working days, converted to your local currency. Physical prizes are delivered; where that isn’t possible, we pay the cash value instead.'],
+ ['Fair play','How do you stop cheating?','Puzzles are timed by our server, so a device can’t slow the clock. We limit one device per account, and review every finalist’s answers for impossible solve times before the prize is confirmed.']];
+function faqPage(){pageStart('','#faq','HELP CENTRE','Questions? <em>Answered.</em>','Everything players ask before, during and after game night.');
+  const cats=[...new Set(FAQ.map(f=>f[0]))];const w=el('div','faqwrap');
+  const s=el('input','faqsearch');s.placeholder='Search the FAQ…';w.appendChild(s);const box=el('div','');w.appendChild(box);
+  const draw=()=>{const q=s.value.toLowerCase();box.innerHTML=cats.map(c=>{const items=FAQ.filter(f=>f[0]===c&&(f[1]+f[2]).toLowerCase().includes(q));return items.length?`<div class="sec" style="margin:28px 0 10px"><div class="eyebrow">${c.toUpperCase()}</div></div>${items.map((f,i)=>`<details class="faq"${q&&i===0?' open':''}><summary>${f[1]}</summary><p>${f[2]}</p></details>`).join('')}`:''}).join('')||'<p class="mute">Nothing found — try another word, or contact us.</p>'};
+  s.oninput=draw;draw();app.appendChild(w);
+  app.appendChild(el('div','card center',`<b>Still stuck?</b><p class="mute" style="margin:6px 0 12px">Our support team replies within 24 hours.</p><a class="btn ghost" data-go="contact">CONTACT SUPPORT</a>`));app.lastChild.style.marginTop='30px';
+  app.appendChild(footerEl())}
+
+const LEGAL={terms:['Terms &amp; official rules',[
+  ['1. Eligibility','Open to individuals aged 18 or over who live in a country where The Vault is permitted. Employees of the organiser and sponsors, and their immediate families, may not play.'],
+  ['2. Free entry','No purchase or payment is required to register, play or win. Purchases, if offered, never affect a player’s chances.'],
+  ['3. Registration','Registration opens 48 hours before each game and closes when the game starts, or when 1,000 players have registered. One account per person.'],
+  ['4. How the champion is decided','All registered players receive identical puzzles at the same time. Players are ranked by score at each stage; the cut-offs are 500, 250, 100, 10 and 1. Ties are broken by finish time.'],
+  ['5. The Vault','The champion plays The Vault. The prize is the level reached when the final lock opens: the grand prize for opening it within 75 seconds, then one level lower for each further 20 seconds, with a guaranteed minimum. The Inside Man is chosen at random from spectators and receives a fixed bonus under the conditions stated in-game.'],
+  ['6. Verification and payment','Winners must verify their identity within 14 days. Cash prizes are paid within 7 working days of verification. The organiser may substitute a prize of equal or greater value.'],
+  ['7. Disqualification','Cheating, automation, multiple accounts or abuse in chat lead to disqualification and forfeiture of any prize.'],
+  ['8. Technical issues','The organiser is not responsible for a player’s own connection or device. If a technical fault on our side affects a game, the organiser may replay or void it.'],
+  ['9. Governing law','To be completed by legal counsel.']]],
+ privacy:['Privacy policy',[
+  ['What we collect','Your username, full name, country, mobile number and email when you register; your game results; and, if you win, a copy of your photo ID.'],
+  ['Why we collect it','To run the game, prevent duplicate accounts and cheating, send the reminders you asked for, and pay prizes.'],
+  ['What is public','Only your username, game results and — if you win — your prize. Your full name, number and email are never shown.'],
+  ['How long we keep it','Account data while your account is open; winner ID records as long as the law requires.'],
+  ['Your rights','You can download or delete your data at any time from My Account, or by contacting us.'],
+  ['Cookies','We use only what’s needed to keep you signed in and remember your preferences.']]]};
+function legalPage(k){const [t,secs]=LEGAL[k];pageStart('','#'+k,'LEGAL',t,'');
+  app.appendChild(el('div','draftnote','⚠ DRAFT — placeholder text for the prototype. The final version must be written by legal counsel for each country where the game runs.'));
+  app.appendChild(el('div','card legal',secs.map(([h,p])=>`<h3>${h}</h3><p>${p}</p>`).join('')));app.appendChild(footerEl())}
+
+function contactPage(){pageStart('','#contact','SUPPORT','Talk to <em>us.</em>','We reply within 24 hours. On game night, support is live in the chat.');
+  const c=el('div','grid2');
+  c.innerHTML=`<div class="card"><h3>Contact details</h3><p class="mute" style="line-height:1.8">Email: <b style="color:var(--text)">support@yourdomain.com</b><br>Prize team: <b style="color:var(--text)">prizes@yourdomain.com</b><br>Partnerships: <b style="color:var(--text)">partners@yourdomain.com</b></p><p class="mute small">Placeholder addresses for the demo.</p></div>
+   <form class="card" id="cf"><h3>Send a message</h3><div class="field"><label>Your name</label><input name="n"></div><div class="field"><label>Email</label><input name="e" type="email"></div><div class="field"><label>Topic</label><select name="t"><option>Registration</option><option>Game night problem</option><option>Prizes</option><option>Report a scam</option><option>Other</option></select></div><div class="field"><label>Message</label><textarea name="m" rows="4"></textarea></div><div class="err" id="cerr"></div><button class="btn" type="submit">SEND</button></form>`;
+  app.appendChild(c);$('#cf').onsubmit=e=>{e.preventDefault();const f=e.target;if(!f.n.value.trim()||!/@/.test(f.e.value)||!f.m.value.trim()){$('#cerr').textContent='Please fill in your name, email and message.';return}f.innerHTML='<h3>Thanks — message received ✓</h3><p class="mute">In the real site this goes to the support inbox. (Demo: nothing was sent.)</p>'};
+  app.appendChild(footerEl())}
+
+function partnerPage(){pageStart('','#partner','PARTNER WITH US','Put your brand <em>in the vault.</em>','The Vault is a live game show people play, not just watch. Sponsors fund the prizes, and their brand sits at the centre of every game night.');
+  app.appendChild(el('div','stats4',[['1,000','players per game (capped)'],['2×','live shows every week'],['40+ min','average live session'],['Free','to enter — no barrier to play']].map(([v,l])=>`<div class="stat"><div class="v">${v}</div><div class="mute small">${l}</div></div>`).join('')));
+  app.appendChild(el('p','mute small','Launch targets for the demo — replace with real audience figures once live.'));
+  app.appendChild(el('div','',`<div class="sec"><div class="eyebrow">PACKAGES</div><h2>Three ways to partner</h2></div><div class="pkgs">${[
+   ['Title sponsor','The show is “presented by” your brand',['Your logo on the stream, site and every result card','Host mentions at the start, the final and The Vault','You fund The Vault and hand the prize to the champion','First right of renewal each season'],true],
+   ['Stage sponsor','Own one stage of every game',['“Stage 3 presented by…” with your branded puzzle skin','Your logo on that stage’s leaderboard and player cams','A host read before your stage starts']],
+   ['Prize-week partner','Your products become the prizes',['Your products fill the prize ladder for a prize week','Featured on the Prizes page all week','Winner handover at your showroom, filmed for highlights']]].map(([t,sub,list,top])=>`<div class="pkg${top?' top':''}">${top?'<span class="pill ok">MOST VISIBLE</span>':''}<h4>${t}</h4><p class="mute">${sub}</p><ul>${list.map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('')}</div>`));
+  app.appendChild(el('div','',`<div class="sec"><div class="eyebrow">WHERE YOUR BRAND APPEARS</div><h2>Seen at every big moment</h2></div><div class="rulesgrid">${[['📺','The live stream','Logo in the corner of every frame, and the host thanks you by name.'],['🏆','The Vault','The finale is “brought to you by” the title sponsor — the most-watched minutes of the night.'],['📱','Result cards','Every player’s shareable result card carries your logo onto social media.'],['✉','Reminders','Registration and game-night reminders go out under your brand.']].map(([i,t,d])=>`<div class="rule"><div class="ic">${i}</div><div><b>${t}</b><span>${d}</span></div></div>`).join('')}</div>`));
+  const f=el('form','card');f.id='pf';f.style.marginTop='30px';f.innerHTML=`<h3>Get the media kit</h3><div class="grid2" style="gap:12px"><div class="field"><label>Company</label><input name="co"></div><div class="field"><label>Your name</label><input name="n"></div><div class="field"><label>Work email</label><input name="e" type="email"></div><div class="field"><label>Interested in</label><select name="p"><option>Title sponsor</option><option>Stage sponsor</option><option>Prize-week partner</option><option>Not sure yet</option></select></div></div><div class="err" id="perr"></div><button class="btn" type="submit">SEND ME THE MEDIA KIT</button>`;
+  app.appendChild(f);f.onsubmit=e=>{e.preventDefault();if(!f.co.value.trim()||!/@/.test(f.e.value)){$('#perr').textContent='Please add your company and work email.';return}f.innerHTML='<h3>Thank you ✓</h3><p class="mute">In the real site our partnerships team would email the media kit within one working day. (Demo: nothing was sent.)</p>'};
+  app.appendChild(footerEl())}
+
+function highlightsPage(){pageStart('navHi','#highlights','HIGHLIGHTS','The best moments <em>from The Vault.</em>','Every finale, the closest calls and the boldest Inside Man bluffs. Full clips are posted here after each show.');
+  const ws=winners().slice(0,9);const titles=[w=>`${w.name} beats the clock`,w=>`The Inside Man bluff that nearly worked`,w=>`${w.name}’s lightning Speed Run`,w=>`Three locks, one nervy finish`,w=>`${w.name} calls the bluff`,w=>`The closest Code Breaker ever`];
+  const g=el('div','hgrid');app.appendChild(g);
+  ws.forEach((w,i)=>{const r=mulberry32(w.num*97);const start=w.label&&!w.label.startsWith('AED')?'a brand-new SUV':'AED 100,000';const left=Math.round(20+r()*90);const trust=r()<0.5,honest=r()<0.65;
+    const card=el('div','hcard',`<div class="hthumb"><div class="hmeter"><div class="mute small mono">THE VAULT</div><div class="hv">${w.label||'AED '+w.prize.toLocaleString()}</div><div class="vbar"><i style="width:${clamp(w.prize/(start.startsWith('AED')?100000:120000)*100,4,100)}%"></i></div></div><div class="play">▶</div><span class="dur mono">${1+Math.floor(r()*2)}:${String(Math.floor(r()*60)).padStart(2,'0')}</span></div><div class="body"><b>${titles[i%titles.length](w)}</b><div class="mute small">Game #${w.num} · ${new Date(w.t).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div></div>`);
+    card.onclick=()=>{const m=el('div','modal');m.innerHTML=`<div class="mbox"><button class="btn ghost sm mclose">✕</button><div class="eyebrow">GAME #${w.num} · RECAP</div><h2 style="margin:8px 0 14px">${titles[i%titles.length](w)}</h2><div class="tl">${[
+      ['0:00',`${w.name} enters The Vault. The clock starts: ${start} if all three locks open within 1:15.`],['0:'+String(14+Math.floor(r()*12)),'Lock 1 open — Speed Run cleared.'],['0:'+String(40+Math.floor(r()*15)),`Lock 2 open${r()<0.4?' after one wrong code':''} — Recall cleared.`],
+      ['1:0'+Math.floor(r()*9),`The Inside Man sends a tip. ${w.name} ${trust?'trusts it':'calls it a bluff'} — the tip was ${honest?'true':'a bluff'}.`],['—',`The Vault opens. ${w.name} wins ${w.label||'AED '+w.prize.toLocaleString()}. ${w.how}.`]].map(([t,d])=>`<div class="tli"><span class="mono gold">${t}</span><span>${d}</span></div>`).join('')}</div><p class="mute small" style="margin-top:14px">Demo: in the live site, the video clip plays here.</p></div>`;
+      m.onclick=e=>{if(e.target===m||e.target.classList.contains('mclose'))m.remove()};document.body.appendChild(m)};
+    g.appendChild(card)});
+  app.appendChild(footerEl())}
+
+function accountPage(){pageStart('navAcc','#account','MY ACCOUNT',PROF.username||REG?`Hi, <em>${PROF.username||REG.username}.</em>`:'Your <em>account.</em>','');
+  const sch=schedule();
+  if(!PROF.username&&!REG){app.appendChild(el('div','card center',`<p style="font-size:17px">You don't have an account yet.</p><p class="mute">Accounts are created when you register for a game. Registration opens 48 hours before each show.</p>${PROF.points?`<p>You have <b class="gold">${PROF.points} prediction points</b> from watching as a spectator.</p>`:''}<a class="btn" data-go="play">SEE THE NEXT GAME</a>`));app.appendChild(footerEl());return}
+  const u=PROF.username||REG.username,h=PROF.history;
+  const best=h.length?h.reduce((a,x)=>x.rank<a.rank?x:a,h[0]):null;
+  app.appendChild(el('div','stats4',[[h.length,'games played'],[best?'#'+best.rank:'—','best finish'],[h.filter(x=>x.stage>=4).length,'times in the top 100'],[PROF.points,'prediction points']].map(([v,l])=>`<div class="stat"><div class="v">${v}</div><div class="mute small">${l}</div></div>`).join('')));
+  const g=el('div','grid2');g.style.marginTop='16px';app.appendChild(g);
+  const nx=el('div','card');nx.innerHTML=`<h3>Next game</h3><p style="margin:0 0 6px"><b>Game #${sch.num}</b> · ${fmtDate(sch.t)} UAE${localNote(sch.t,true)}</p><p class="mute" style="margin:0 0 12px">${isReg(sch)?'<span class="pg">✓ You’re registered.</span> Be online 5 minutes early for the device check.':sch.status==='open'?'Registration is open — you’re not registered yet.':sch.status==='soon'?`Registration opens ${fmtDate(sch.regOpen)}.`:'The game is live now.'}</p>`;
+  if(sch.status==='open'&&!isReg(sch))nx.appendChild(button('REGISTER NOW','',registerPage));else nx.appendChild(calButtons(sch));nx.lastChild.style.justifyContent='flex-start';g.appendChild(nx);
+  const nt=el('div','card');nt.innerHTML=`<h3>Reminders</h3><p class="mute small" style="margin:0 0 10px">When registration opens, 1 hour before and 10 minutes before each game.</p>${[['wa','WhatsApp'],['sms','SMS'],['email','Email']].map(([k,l])=>`<label class="toggle"><input type="checkbox" data-k="${k}" ${PROF.notif[k]?'checked':''}><span></span>${l}</label>`).join('')}`;
+  nt.querySelectorAll('input').forEach(i=>i.onchange=()=>{PROF.notif[i.dataset.k]=i.checked;saveProf()});g.appendChild(nt);
+  const vf=el('div','card');const vs={none:['Not needed yet','You only verify your ID if you win. It takes about 2 minutes.','mute'],pending:['Under review','We received your ID and will confirm within 24 hours.','pa'],done:['Verified ✓','You’re all set to receive prizes.','pg']}[PROF.verify]||['Not needed yet','','mute'];
+  vf.innerHTML=`<h3>Identity verification</h3><p style="margin:0 0 4px"><b class="${vs[2]}">${vs[0]}</b></p><p class="mute small" style="margin:0 0 12px">${vs[1]}</p>`;
+  if(PROF.verify!=='done'&&h.some(x=>x.champ)){const lab=el('label','btn ghost sm','📎 UPLOAD PHOTO ID');const inp=document.createElement('input');inp.type='file';inp.accept='image/*,.pdf';inp.style.display='none';lab.appendChild(inp);inp.onchange=()=>{PROF.verify='pending';saveProf();accountPage()};vf.appendChild(lab)}
+  g.appendChild(vf);
+  const inv=el('div','card');const link=`https://the-vault-demo-gamma.vercel.app/?ref=${u}`;inv.innerHTML=`<h3>Invite friends</h3><p class="mute small" style="margin:0 0 10px">Friends who register with your link get <b style="color:var(--text)">early access</b> — registration opens 2 hours sooner for them. (It never gives anyone extra chances to win.)</p><div class="copyrow"><input readonly value="${link}"><button class="btn sm" id="cp">COPY</button></div><div class="row" style="margin-top:10px"><a class="btn ghost sm" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Play The Vault with me — a free live game show. Register with my link: '+link)}">Share on WhatsApp</a><span class="mute small">${Math.floor(mulberry32(u.length*7)()*4)} friends joined</span></div>`;
+  g.appendChild(inv);inv.querySelector('#cp').onclick=e=>{try{navigator.clipboard.writeText(link);e.target.textContent='COPIED ✓'}catch(_){e.target.textContent='SELECT & COPY'}};
+  app.appendChild(el('div','',`<div class="sec"><div class="eyebrow">BADGES</div><h2>Your collection</h2></div><div class="badges">${BADGES.map(([i,t,d,f])=>{const on=f(PROF);return `<div class="badge${on?' on':''}"><div class="bi">${i}</div><b>${t}</b><span>${d}</span></div>`}).join('')}</div>`));
+  const hs=el('div','');hs.innerHTML=`<div class="sec"><div class="eyebrow">HISTORY</div><h2>Your games</h2></div>`;const tc=el('div','card');
+  tc.innerHTML=h.length?`<table class="lb"><tr><td class="mute small">GAME</td><td class="mute small">REACHED</td><td class="r mute small">FINISH</td><td class="r mute small">PRIZE</td></tr>${h.slice().reverse().map(x=>`<tr${x.champ?' class="me"':''}><td>#${x.num}</td><td>${x.stage>5?'The Vault':'Stage '+x.stage+' · '+x.stageName}</td><td class="r mono">#${x.rank} / ${x.field.toLocaleString()}</td><td class="r">${x.prize||'—'}</td></tr>`).join('')}</table>`:'<p class="mute" style="margin:0">No games yet — your results appear here after your first live game.</p>';
+  hs.appendChild(tc);app.appendChild(hs);
+  const dz=el('div','row');dz.style.marginTop='20px';dz.append(button('Delete my data','ghost sm',()=>{if(dz.dataset.c){PROF={history:[],points:0,correct:0,regs:[],notif:{wa:true,sms:false,email:true},verify:'none',since:null,username:null,country:null};saveProf();REG=null;try{localStorage.removeItem('vault_reg')}catch(e){}accountPage()}else{dz.dataset.c=1;dz.firstChild.textContent='Tap again to confirm — this erases your account in this browser'}}));app.appendChild(dz);
+  app.appendChild(footerEl())}
+
+function winnersPage(){
+  clearInterval(tmr);document.onkeydown=null;stopLive();nav('navWin');setHash('#winners');
+  const w=winners();const total=w.reduce((a,x)=>a+x.prize,0);const best=w.reduce((a,x)=>x.prize>a.prize?x:a,w[0]);
+  app.innerHTML=`<div class="mute small mono">HALL OF CHAMPIONS</div><h1 style="margin:6px 0 16px">Every winner. <span class="gold">Every prize.</span></h1>
+   <div class="stats"><div class="stat"><div class="mute small">PAID OUT</div><div class="v">AED ${total.toLocaleString()}</div><div class="mute small">cash + prize value</div></div><div class="stat"><div class="mute small">BIGGEST WIN</div><div class="v">AED ${best.prize.toLocaleString()}</div><div class="mute small">${best.label&&!best.label.startsWith('AED')?best.label+' · ':''}${best.name} · Game #${best.num}</div></div><div class="stat"><div class="mute small">CHAMPIONS</div><div class="v">${w.length}</div></div></div>`;
+  const c=el('div','card');const tb=el('table','lb');
+  tb.appendChild(el('tr','',`<td class="k mute small">GAME</td><td class="mute small">CHAMPION</td><td class="mute small hidem">HOW THEY FINISHED</td><td class="r mute small">PRIZE</td>`));
+  w.forEach(x=>tb.appendChild(el('tr',x.me?'me':'',`<td class="k">#${x.num}</td><td><b>${x.name}</b>${x.me?' <span class="pill ok">YOU</span>':''}<div class="mute small">${new Date(x.t).toLocaleDateString('en-GB',{timeZone:'Asia/Dubai',weekday:'short',day:'numeric',month:'short'})} · beat ${(x.players-1).toLocaleString()} players${x.demo?' · demo':''}</div></td><td class="mute small hidem">${x.how}</td><td class="r" style="color:var(--gold2);font-weight:700">${x.label||'AED '+x.prize.toLocaleString()}${x.label&&!x.label.startsWith('AED')?`<div class="mute small" style="font-weight:400">worth AED ${x.prize.toLocaleString()}</div>`:''}</td>`)));
+  c.appendChild(tb);app.appendChild(c);
+  app.appendChild(el('p','mute small','Prototype: past winners are sample data. Champions from shows you play or watch here are added to the top.'));app.appendChild(footerEl());
+}
+
+function stageIntro(i){
+  if(LIVE)return liveIntro(i);
+  clearInterval(tmr);document.onkeydown=null;
+  const s=STAGES[i];app.innerHTML='';
+  const c=el('div','card');
+  c.innerHTML=`<div class="mute small mono">STAGE ${i+1} OF 5 · ${s.skill.toUpperCase()}</div><h1>${s.name}</h1>
+   <p style="line-height:1.6;margin:10px 0 14px">${s.how}</p>
+   <div class="row mute small" style="margin-bottom:16px"><span>⏱ ${fmt(s.time)}</span><span>·</span><span>${s.cutLabel}</span>${state.practice?'<span class="pill pr">PRACTICE · UNRANKED</span>':''}</div>`;
+  const r=el('div','row');r.append(button('START STAGE '+(i+1),'',()=>playStage(i)));c.appendChild(r);
+  app.appendChild(c);
+}
+
+function playStage(i){
+  const S=STAGES[i];
+  app.innerHTML=`<div class="hud"><div><span class="mute">Stage ${i+1}/5 · </span><b>${S.name}</b>${state.practice?' <span class="pill pr">PRACTICE</span>':''}</div><div class="timer" id="tm"></div></div><div class="bar" id="bar"><i></i></div><div class="flash" id="flash"></div><div class="stage-area" id="area"></div>`;
+  let ended=false;const t0=performance.now();
+  const ctx={elapsed:()=>(performance.now()-t0)/1000,remaining:()=>Math.max(0,S.time-(performance.now()-t0)/1000),total:S.time,ended:()=>ended,onTimeout:null};
+  ctx.finish=(score,note)=>{if(ended)return;ended=true;clearInterval(tmr);document.onkeydown=null;setTimeout(()=>(LIVE?waiting:stageResult)(i,Math.round(clamp(score,0,1000)),note),900)};
+  const tick=()=>{if(ended||!$('#tm'))return;const rem=ctx.remaining();$('#tm').textContent=fmt(rem);const b=$('#bar');b.firstChild.style.width=(rem/S.time*100)+'%';b.classList.toggle('low',rem<15);if(rem<=0&&ctx.onTimeout)ctx.onTimeout()};
+  clearInterval(tmr);tmr=setInterval(tick,200);
+  IMPL[S.key]($('#area'),ctx);tick();
+}
+
+const DISKC=['#e7b54a','#4fd1ff','#3ecf8e','#ff5d6d','#b48cff','#f2a93b'];
+const SIMC=['#e7b54a','#4fd1ff','#3ecf8e','#ff5d6d'];
+const IMPL={
+ lights(area,ctx){
+  const {on}=genLights(mulberry32(SEED+66));let taps=0;const g=el('div','lo'),info=el('div','mute small');area.append(g,info);
+  const lit=()=>on.reduce((a,b)=>a+b,0);
+  const draw=()=>{g.innerHTML='';on.forEach((v,k)=>{const c=el('div',v?'on':'');c.onclick=()=>tap(k);g.appendChild(c)});info.textContent=`Taps: ${taps} · Lights on: ${lit()}`};
+  function tap(k){if(ctx.ended())return;loPress(on,k);taps++;draw();if(lit()===0){const t=ctx.elapsed();flash('Blackout!','g');ctx.finish(Math.max(250,1000-3.5*t-4*Math.max(0,taps-10)),`Cleared in ${t.toFixed(1)}s with ${taps} taps`)}}
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish((25-lit())*8,`Not cleared · ${lit()} lights still on`)};draw();
+ },
+ math(area,ctx){
+  const qs=genMath(mulberry32(SEED+88));let qi=0,correct=0,busy=false;
+  const qEl=el('div','seq'),opts=el('div','opts'),info=el('div','mute small');area.append(qEl,opts,info);
+  function show(){if(qi>=qs.length){const rem=ctx.remaining();ctx.finish(correct*70+300*rem/ctx.total,`${correct}/10 correct with ${Math.round(rem)}s to spare`);return}
+    const q=qs[qi];qEl.innerHTML=q.q+' = <span class="q">?</span>';opts.innerHTML='';info.textContent=`Question ${qi+1} of 10 · Correct: ${correct}`;
+    q.options.forEach(o=>{const bt=el('button','opt',String(o));bt.onclick=()=>{if(busy||ctx.ended())return;busy=true;const ok=o===q.answer;if(ok)correct++;bt.classList.add(ok?'right':'wrong');
+      if(!ok)[...opts.children].find(x=>Number(x.textContent)===q.answer).classList.add('right');setTimeout(()=>{busy=false;qi++;if(!ctx.ended())show()},ok?350:1000)};opts.appendChild(bt)})}
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish(correct*70,`${correct}/10 correct · ran out of time`)};show();
+ },
+ simon(area,ctx){
+  const seq=genSimon(mulberry32(SEED+77));let len=3,pos=0,phase='show',score=0;const g=el('div','sim'),info=el('div','mute small');area.append(g,info);
+  const pads=SIMC.map((c,k)=>{const p=el('div','');p.style.background=c;p.style.setProperty('--c',c);p.onclick=()=>hit(k);g.appendChild(p);return p});
+  const light=(k,ms)=>{pads[k].classList.add('lit');setTimeout(()=>pads[k].classList.remove('lit'),ms)};
+  function play(){phase='show';info.textContent=`Round ${len-2} · Watch ${len} flashes…`;let k=0;const sp=Math.max(300,700-len*35);
+    const step=()=>{if(ctx.ended())return;if(k>=len){phase='input';pos=0;info.textContent=`Round ${len-2} · Repeat ${len} steps`;return}light(seq[k],sp*0.65);k++;setTimeout(step,sp)};setTimeout(step,700)}
+  function hit(k){if(phase!=='input'||ctx.ended())return;light(k,180);
+    if(seq[pos]!==k){phase='done';flash('Wrong pad!','r');ctx.finish(score,`Reached round ${len-2} · ${len-1} steps remembered`);return}
+    pos++;if(pos===len){score+=100;phase='show';flash(`Round ${len-2} cleared`,'g');if(len===12){ctx.finish(1000,'Perfect — all 10 rounds');return}len++;setTimeout(()=>{flash('');play()},800)}}
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish(score,`Reached round ${len-2}`)};play();
+ },
+ hanoi(area,ctx){
+  const pegs=[[5,4,3,2,1],[],[]];let sel=-1,moves=0;const g=el('div','hn'),info=el('div','mute small');area.append(g,info);
+  const draw=()=>{g.innerHTML='';pegs.forEach((p,i)=>{const pe=el('div','peg'+(sel===i?' sel':''));p.forEach(d=>{const dk=el('div','disk');dk.style.width=(28+d*14)+'%';dk.style.background=DISKC[d-1];pe.appendChild(dk)});pe.onclick=()=>tap(i);g.appendChild(pe)});info.textContent=`Moves: ${moves} · Perfect = 31`};
+  function tap(i){if(ctx.ended())return;if(sel<0){if(pegs[i].length)sel=i}else{if(i!==sel){const d=pegs[sel][pegs[sel].length-1],top=pegs[i][pegs[i].length-1];if(top==null||top>d){pegs[i].push(pegs[sel].pop());moves++}else flash('A bigger disk can\'t go on a smaller one','a')}sel=-1}
+    draw();if(pegs[2].length===5){const t=ctx.elapsed();flash('Tower moved!','g');ctx.finish(Math.max(250,1000-3*t-6*Math.max(0,moves-31)),`Solved in ${t.toFixed(1)}s with ${moves} moves`)}}
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish(pegs[2].length*40,`Not solved · ${pegs[2].length}/5 disks moved`)};draw();
+ },
+ lock(area,ctx){
+  const b=genSlide(mulberry32(SEED+11));let e=b.indexOf(0),moves=0;
+  const g=el('div','slide'),info=el('div','mute small');area.append(g,info);
+  const inPlace=()=>b.filter((v,k)=>v&&v===k+1).length;
+  function draw(){g.innerHTML='';b.forEach((v,k)=>{const t=el('div','tile'+(v?'':' empty')+(v&&v===k+1?' ok':''),v||'');t.onclick=()=>move(k);g.appendChild(t)});info.textContent=`Moves: ${moves} · Tiles in place: ${inPlace()}/8`}
+  function move(k){
+    if(ctx.ended()||!adj(e).includes(k))return;
+    b[e]=b[k];b[k]=0;e=k;moves++;draw();
+    if(slideSolved(b)){const t=ctx.elapsed();flash('Unlocked!','g');ctx.finish(Math.max(250,1000-3.5*t-2.5*Math.max(0,moves-30)),`Solved in ${t.toFixed(1)}s with ${moves} moves`)}
+  }
+  document.onkeydown=ev=>{const m={ArrowUp:e+3,ArrowDown:e-3,ArrowLeft:e+1,ArrowRight:e-1}[ev.key];if(m!=null&&m>=0&&m<9){ev.preventDefault();move(m)}};
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish(inPlace()*25,`Not solved · ${inPlace()}/8 tiles in place`)};
+  draw();
+ },
+ pattern(area,ctx){
+  const seqs=genSeqs(mulberry32(SEED+22));let qi=0,correct=0,busy=false;
+  const seqEl=el('div','seq'),opts=el('div','opts'),info=el('div','mute small');area.append(seqEl,opts,info);
+  function show(){
+    if(qi>=seqs.length){const rem=ctx.remaining();ctx.finish(correct*120+280*rem/ctx.total,`${correct}/6 correct with ${Math.round(rem)}s to spare`);return}
+    const s=seqs[qi];seqEl.innerHTML=s.shown.join(', ')+', <span class="q">?</span>';opts.innerHTML='';
+    info.textContent=`Sequence ${qi+1} of 6 · Correct so far: ${correct}`;
+    s.options.forEach(o=>{const bt=el('button','opt',String(o));bt.onclick=()=>{
+      if(busy||ctx.ended())return;busy=true;const ok=o===s.answer;if(ok)correct++;
+      bt.classList.add(ok?'right':'wrong');
+      if(!ok)[...opts.children].find(x=>Number(x.textContent)===s.answer).classList.add('right');
+      setTimeout(()=>{busy=false;qi++;if(!ctx.ended())show()},ok?450:1200)};opts.appendChild(bt)});
+  }
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish(correct*120,`${correct}/6 correct · ran out of time`)};
+  show();
+ },
+ memory(area,ctx){
+  const r=mulberry32(SEED+33);const L=[[4,4,2200],[5,6,2400],[5,8,2600],[6,10,2800],[6,12,3000]];
+  let li=0,score=0,hits=0,need=0;
+  const info=el('div','mute small'),g=el('div','mgrid');area.append(info,g);
+  function level(){
+    if(li>=L.length){ctx.finish(score,`${hits}/${need} cells recalled`);return}
+    const [n,k,ms]=L[li];const set=new Set(shuffle([...Array(n*n).keys()],r).slice(0,k));const picks=new Set();let phase='show';
+    g.style.gridTemplateColumns=`repeat(${n},1fr)`;g.innerHTML='';const cells=[];
+    for(let x=0;x<n*n;x++){const c=el('div','mcell'+(set.has(x)?' lit':''));
+      c.onclick=()=>{if(phase!=='input'||ctx.ended())return;if(picks.has(x)){picks.delete(x);c.classList.remove('sel')}else{picks.add(x);c.classList.add('sel')}upd();if(picks.size===k)check()};
+      cells.push(c);g.appendChild(c)}
+    info.textContent=`Level ${li+1}/5 · Memorise ${k} cells…`;flash('');
+    setTimeout(()=>{if(ctx.ended())return;cells.forEach(c=>c.classList.remove('lit'));phase='input';upd()},ms);
+    function upd(){info.textContent=`Level ${li+1}/5 · Tap ${k} cells · ${picks.size}/${k} selected`}
+    function check(){phase='done';let h=0;
+      cells.forEach((c,x)=>{c.classList.remove('sel');if(set.has(x)&&picks.has(x)){c.classList.add('hit');h++}else if(picks.has(x))c.classList.add('miss');else if(set.has(x))c.classList.add('missed')});
+      hits+=h;need+=k;score+=h/k*200;flash(h===k?'Perfect!':`${h}/${k} correct`,h===k?'g':'a');
+      setTimeout(()=>{if(ctx.ended())return;li++;level()},1200)}
+  }
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish(score,`${hits} cells recalled · ran out of time`)};
+  level();
+ },
+ laser(area,ctx){
+  const r=mulberry32(SEED+44);
+  const P=[[3,10,6,3],[4,13,8,4],[6,16,10,4]];
+  const levels=P.map(p=>genLaser(r,...p));
+  let li=0,score=0,solved=0,fires=0,totalFires=0,showing=false;
+  const CS=60,OX=34,OY=10,W=OX+LN*CS+10,H=OY+LN*CS+10;
+  const info=el('div','mute small'),holder=el('div',''),row=el('div','row');
+  const fireBtn=button('FIRE LASER','',fire);const legend=el('div','legend','Tap a mirror to flip it. Walls block the beam. The beam stays hidden until you fire.');
+  row.append(fireBtn);area.append(info,holder,row,legend);
+  const L=()=>levels[li];
+  function draw(beam,hit){
+    const lv=L();let s=`<svg class="laser" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+    for(let y=0;y<LN;y++)for(let x=0;x<LN;x++){
+      const c=lv.grid[y][x],px=OX+x*CS,py=OY+y*CS;
+      if(c&&c.t==='mirror'){
+        const ln=c.m===0?`${px+12},${py+48} ${px+48},${py+12}`:`${px+12},${py+12} ${px+48},${py+48}`;
+        s+=`<g class="mc" data-y="${y}" data-x="${x}"><rect x="${px+1}" y="${py+1}" width="${CS-2}" height="${CS-2}" rx="6" fill="#161a20" stroke="#262b33"/><polyline points="${ln}" stroke="#cfd6e2" stroke-width="5" stroke-linecap="round"/></g>`;
+      }else if(c&&c.t==='wall'){
+        s+=`<rect x="${px+3}" y="${py+3}" width="${CS-6}" height="${CS-6}" rx="4" fill="#2a2f38"/><path d="M${px+10} ${py+10}L${px+50} ${py+50}M${px+50} ${py+10}L${px+10} ${py+50}" stroke="#3a404b" stroke-width="3"/>`;
+      }else{
+        s+=`<rect x="${px+1}" y="${py+1}" width="${CS-2}" height="${CS-2}" rx="6" fill="#0e1014" stroke="#1b1f26"/>`;
+        if(c&&c.t==='target')s+=`<circle cx="${px+30}" cy="${py+30}" r="20" fill="${hit?'#3a3214':'#1d1a10'}" stroke="#e7b54a" stroke-width="3"/><rect x="${px+22}" y="${py+28}" width="16" height="12" rx="2" fill="#e7b54a"/><path d="M${px+25} ${py+28}v-4a5 5 0 0 1 10 0v4" stroke="#e7b54a" stroke-width="2.5" fill="none"/>`;
+      }
+    }
+    s+=`<rect x="4" y="${OY+lv.sr*CS+18}" width="24" height="24" rx="4" fill="#ff5d6d"/><circle cx="28" cy="${OY+lv.sr*CS+30}" r="4" fill="#fff"/>`;
+    if(beam){
+      const t=traceGrid(lv.grid,lv.sr);const pts=[[28,OY+lv.sr*CS+30]];
+      t.cells.forEach(c=>{const cx=OX+c.x*CS+30,cy=OY+c.y*CS+30;if(c.stop==='wall')pts.push([cx-DIRS[c.d][1]*27,cy-DIRS[c.d][0]*27]);else pts.push([cx,cy])});
+      if(t.exit!=null){const l=pts[pts.length-1];pts.push([l[0]+DIRS[t.exit][1]*30,l[1]+DIRS[t.exit][0]*30])}
+      s+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${hit?'#3ecf8e':'#ff4d6d'}" stroke-width="4" stroke-linejoin="round" filter="url(#glow)"/>`;
+    }
+    s+='</svg>';holder.innerHTML=s;
+    holder.querySelectorAll('.mc').forEach(g=>g.onclick=()=>{if(showing||ctx.ended())return;const c=lv.grid[+g.dataset.y][+g.dataset.x];c.m^=1;draw()});
+    info.textContent=`Maze ${li+1}/3 · Shots fired: ${fires}`;
+  }
+  function fire(){
+    if(showing||ctx.ended())return;fires++;totalFires++;showing=true;fireBtn.disabled=true;
+    const hit=traceGrid(L().grid,L().sr).hit;draw(true,hit);
+    if(hit){flash('Lock hit!','g');solved++;score+=Math.max(100,250-25*Math.max(0,fires-1));
+      setTimeout(()=>{if(ctx.ended())return;li++;fires=0;showing=false;fireBtn.disabled=false;flash('');
+        if(li>=levels.length){ctx.finish(score+250*ctx.remaining()/ctx.total,`3/3 mazes solved · ${totalFires} shots`);return}draw()},1000);
+    }else{flash('Missed — rethink the path','r');setTimeout(()=>{if(ctx.ended())return;showing=false;fireBtn.disabled=false;flash('');draw()},1500)}
+  }
+  ctx.onTimeout=()=>{flash("Time's up",'r');ctx.finish(score,`${solved}/3 mazes solved · ran out of time`)};
+  draw();
+ },
+ vault(area,ctx){
+  const code=genCode(mulberry32(SEED+55));let cur=[],hist=[],notes=Array(10).fill(0),best=0;
+  const slots=el('div','slots'),pad=el('div','pad'),notesLbl=el('div','mute small','Notes — tap to mark a digit: <s>ruled out</s> → <span class="pg">in the code</span>'),notesEl=el('div','notes'),left=el('div','mute small'),hl=el('div','hist');
+  area.append(slots,pad,notesLbl,notesEl,left,hl);
+  function draw(){
+    slots.innerHTML='';for(let i=0;i<5;i++)slots.appendChild(el('div','slot'+(i===cur.length?' cur':''),cur[i]!=null?cur[i]:''));
+    pad.innerHTML='';for(let d=1;d<=10;d++){const v=d%10;const k=el('button','key'+(notes[v]?' n'+notes[v]:''),String(v));k.onclick=()=>press(v);pad.appendChild(k)}
+    const bk=el('button','key wide','⌫ DELETE');bk.onclick=()=>{cur.pop();draw()};const cl=el('button','key','C');cl.onclick=()=>{cur=[];draw()};
+    const go=el('button','key wide','ENTER ↵');go.style.color='var(--gold)';go.onclick=submit;pad.append(bk,cl,go);
+    notesEl.innerHTML='';for(let v=0;v<10;v++){const n=el('button','note'+(notes[v]?' n'+notes[v]:''),String(v));n.onclick=()=>{notes[v]=(notes[v]+1)%3;draw()};notesEl.appendChild(n)}
+    left.textContent=`Guesses left: ${12-hist.length}`;
+    hl.innerHTML='';hist.slice().reverse().forEach((h,i)=>hl.appendChild(el('div','hrow',`<span class="mute small">#${hist.length-i}</span><span class="d">${h.g.join('')}</span><span><span class="pg">${'●'.repeat(h.a)}</span><span class="pa">${'○'.repeat(h.b)}</span>${h.a+h.b===0?'<span class="mute">—</span>':''}</span>`)));
+  }
+  function press(v){if(ctx.ended())return;if(cur.length>=5)return;if(cur.includes(v)){flash('Digits in the code never repeat','a');return}cur.push(v);flash('');draw()}
+  function submit(){
+    if(ctx.ended())return;if(cur.length<5){flash('Enter 5 digits','a');return}
+    const [a,b]=feedback(code,cur);hist.push({g:cur.slice(),a,b});best=Math.max(best,a);cur=[];draw();
+    if(a===5){const t=ctx.elapsed();flash('VAULT OPEN!','g');ctx.finish(Math.max(300,1000-40*(hist.length-1)-t),`Cracked in ${hist.length} guesses, ${Math.round(t)}s`)}
+    else if(hist.length>=12){flash('Out of guesses — the code was '+code.join(''),'r');ctx.finish(best*40,`Not cracked · code was ${code.join('')}`)}
+  }
+  document.onkeydown=ev=>{if(/^[0-9]$/.test(ev.key))press(+ev.key);else if(ev.key==='Backspace'){cur.pop();draw()}else if(ev.key==='Enter'){ev.preventDefault();submit()}};
+  ctx.onTimeout=()=>{flash("Time's up — the code was "+code.join(''),'r');ctx.finish(best*40,`Not cracked · code was ${code.join('')}`)};
+  draw();
+ }
+};
+
+function stageResult(i,score,note){
+  const S=STAGES[i];
+  const alive=bots.filter(b=>b.alive);
+  const rank=alive.filter(b=>b.scores[i]>score).length+1;const field=alive.length+1;
+  const adv=rank<=S.cut;
+  const sorted=alive.slice().sort((a,b)=>b.scores[i]-a.scores[i]);
+  const board=[...sorted.map(b=>({name:b.name,s:b.scores[i]})),{name:meName(),s:score,me:true}].sort((a,b)=>b.s-a.s||(a.me?-1:b.me?1:0));
+  const keep=(adv&&!state.practice)?S.cut-1:S.cut;sorted.forEach((b,k)=>b.alive=k<keep);
+  state.scores[i]=score;state.ranks[i]=rank;state.fields[i]=field;state.adv[i]=adv;
+  const justOut=!adv&&!state.practice;if(justOut)state.elimAt=i;
+  if(i===4)state.board=board.slice(0,10);
+
+  app.innerHTML='';const c=el('div','card');
+  const pill=state.practice&&!justOut?`<span class="pill pr">PRACTICE · WOULD ${adv?'ADVANCE':'BE OUT'}</span>`:adv?`<span class="pill ok">${i===4?'WINNER':'ADVANCED'}</span>`:`<span class="pill no">ELIMINATED</span>`;
+  c.innerHTML=`<div class="row" style="justify-content:space-between"><div class="mute small mono">STAGE ${i+1} RESULT · ${S.name.toUpperCase()}</div>${pill}</div>
+   <div class="row" style="align-items:flex-end;gap:28px;margin:14px 0 6px"><div><div class="mute small">SCORE</div><div class="big">${score}</div></div>
+   <div><div class="mute small">RANK</div><div class="big" style="font-size:38px">#${rank}<span class="mute" style="font-size:18px"> / ${field.toLocaleString()}</span></div></div></div>
+   <div class="mute small" style="margin-bottom:14px">${note} · Cut-off: ${S.cutLabel.toLowerCase()}</div>`;
+  const tb=el('table','lb');
+  c.appendChild(el('h3','',i===4?'Final standings':'Full leaderboard · all '+board.length.toLocaleString()+' players'));c.appendChild(tb);
+  liveBoard(tb,board.filter(x=>!x.me),score,S.cut,board.length);
+  const r=el('div','row');r.style.marginTop='18px';
+  if(i<4){
+    if(justOut){r.append(button('KEEP PLAYING (PRACTICE)','',()=>{state.practice=true;stageIntro(i+1)}),button('RESTART · NEW PUZZLES','ghost',()=>newRun(SEED+7919)))}
+    else r.append(button('NEXT: '+STAGES[i+1].name.toUpperCase(),'',()=>stageIntro(i+1)));
+  }else r.append(button('SEE FINAL RESULT','',finalScreen));
+  c.appendChild(r);app.appendChild(c);
+  if(LIVE)liveAfterResult(i,adv,board,r);
+}
+
+function vaultRoom(autoName){
+  clearInterval(tmr);document.onkeydown=null;clearT();
+  const isPrize=gameCfg(schedule().num).vault==='prizes';
+  const TIERS=vaultTiers(isPrize),TOP=TIERS[0][2],FLOOR=TIERS[TIERS.length-1][2],TT=180;
+  const itemFor=v=>{const t=TIERS.find(x=>x[2]===v)||TIERS[TIERS.length-1];return [t[1],t[2]]};
+  const labelFor=v=>itemFor(v)[0];const valueFor=v=>v;
+  const name=autoName||meName(),rnd=Math.random,insider=rname(),honest=rnd()<0.65;
+  const code3=shuffle([0,1,2,3,4,5,6,7,8,9],rnd).slice(0,3);const D10=[0,1,2,3,4,5,6,7,8,9];
+  let tip;{const ty=Math.floor(rnd()*3);
+    if(ty===0){const d=honest?code3[0]:D10.filter(x=>x!==code3[0])[Math.floor(rnd()*9)];tip=`The first digit is ${d}.`}
+    else if(ty===1){const pool=honest?code3:D10.filter(x=>!code3.includes(x));tip=`There's a ${pool[Math.floor(rnd()*pool.length)]} in the code.`}
+    else{const pool=honest?D10.filter(x=>!code3.includes(x)):code3;tip=`There's NO ${pool[Math.floor(rnd()*pool.length)]} in the code.`}}
+  let tpen=0,t0=null,frozen=null,lock=0,ended=false,trustPoll=50,voted=false,predIns=null,predVal=null;const THR=isPrize?15000:50000;
+  const elapsed=()=>t0==null?0:(performance.now()-t0)/1000;
+  const eff=()=>elapsed()+tpen;const tierAt=t=>TIERS.find(x=>t<=x[0]);const cur=()=>frozen!=null?frozen:(t0==null?TOP:tierAt(eff())[2]);
+  if(LIVE){if(viewers<FIELD*1.3)setViewers(FIELD*1.5+rnd()*300);streamScene('THE VAULT · FINALE');chatMood('final')}
+  app.innerHTML='';const c=el('div','card vaultfin');app.appendChild(c);
+  c.innerHTML=`<div class="row" style="justify-content:space-between"><div class="mute small mono">THE VAULT · FINALE · ${isPrize?'PRIZE WEEK':'CASH WEEK'}</div><span class="pill ${autoName?'pr':'ok'}">${autoName?'WATCHING '+autoName.toUpperCase():'YOUR VAULT'}</span></div>
+   <div class="meterwrap"><div class="mute small mono" id="vlabel">THE VAULT IS WORTH</div><div class="vbig" id="vv"></div><div class="vitem" id="vi"></div><div class="vbar"><i id="vb"></i></div><div class="vfloat" id="vf"></div><div class="ladder" id="ladder"></div></div>
+   <div class="locks" id="locks"></div><div class="flash" id="flash"></div><div id="work" class="stage-area"></div><div id="ins"></div>`;
+  const upd=()=>{const v=cur(),e=eff(),ti=frozen!=null?TIERS.findIndex(x=>x[2]===frozen):t0==null?0:TIERS.indexOf(tierAt(e));const tier=TIERS[ti];
+    $('#vv').textContent=labelFor(v);
+    $('#vi').innerHTML=(isPrize?`<span class="mute">worth AED ${v.toLocaleString()} · </span>`:'')+(t0==null?`Open all three locks within <b>${fmt(TIERS[0][0])}</b> to win it`:frozen!=null?'<b class="pg">LOCKED IN</b>':tier[0]===Infinity?'<span class="drain">Guaranteed minimum — finish the locks to claim it</span>':`<span class="${tier[0]-e<10?'drain':''}">⏱ <b>${fmt(Math.max(0,tier[0]-e))}</b> left at this level${ti<TIERS.length-1?` — then it drops to ${TIERS[ti+1][1]}`:''}</span>`);
+    const prevT=ti>0?TIERS[ti-1][0]:0;$('#vb').style.width=(frozen!=null||t0==null?100:tier[0]===Infinity?100:clamp((tier[0]-e)/(tier[0]-prevT)*100,0,100))+'%';
+    $('#ladder').innerHTML=TIERS.map((x,i)=>`<span class="${i===ti?'on':i<ti?'gone':''}">${x[1]}<i>${x[0]===Infinity?'min':'≤'+fmt(x[0])}</i></span>`).join('');
+    if(t0!=null&&frozen==null&&elapsed()>=TT)timeUp()};
+  clearInterval(tmr);tmr=setInterval(upd,100);upd();
+  const drawLocks=()=>{$('#locks').innerHTML=['Speed Run','Recall','Final Code'].map((n,i)=>`<div class="lk ${i<lock?'ok':i===lock&&t0!=null?'on':''}"><div style="font-size:20px">${i<lock?'🔓':'🔒'}</div><b>Lock ${i+1}</b><div class="mute small">${n}</div></div>`).join('')};drawLocks();
+  function penalty(p,why){if(frozen!=null)return;const sec=Math.round(p*100);tpen+=sec;const f=$('#vf');f.textContent=`+${sec}s penalty`;f.classList.remove('pop');void f.offsetWidth;f.classList.add('pop');flash(why,'r')}
+  function unlock(){lock++;drawLocks();flash(`Lock ${lock} open!`,'g');document.onkeydown=null;
+    if(lock>=3){openVault();return}
+    if(LIVE)host(`Lock ${lock} is open! ${name} is still on course for ${labelFor(cur())}…`);T(lock===1?lock2:lock3,900)}
+  // ---- Lock 1: Speed Run
+  function lock1(){const w=$('#work');w.innerHTML='';const nums=shuffle([...Array(12).keys()].map(x=>x+1),rnd);let next=1;
+    const info=el('div','mute small','LOCK 1 · Tap 1 → 12 in order, as fast as you can');const g=el('div','speedgrid');w.append(info,g);
+    const btns=nums.map(n=>{const b=el('button','sbtn',String(n));g.appendChild(b);return b});
+    if(autoName){let k=0;const step=()=>{if(ended)return;k++;if(rnd()<0.07){const wb=btns[Math.floor(rnd()*12)];wb.classList.add('bad');T(()=>wb.classList.remove('bad'),300);penalty(0.03,`${autoName} hit the wrong number! +3 seconds`)}
+        btns[nums.indexOf(k)].classList.add('ok');if(k>=12){unlock();return}T(step,700+rnd()*900)};T(step,900);return}
+    btns.forEach((b,i)=>b.onclick=()=>{if(ended)return;const n=nums[i];if(n===next){b.classList.add('ok');b.disabled=true;next++;if(next>12)unlock()}else{b.classList.add('bad');setTimeout(()=>b.classList.remove('bad'),300);penalty(0.03,'Wrong number — +3 seconds')}});
+  }
+  // ---- Lock 2: Recall
+  function lock2(){const w=$('#work');let codeR,entry='';
+    const show=()=>{if(ended)return;codeR=Array.from({length:6},()=>Math.floor(rnd()*10)).join('');entry='';w.innerHTML='';w.append(el('div','mute small','LOCK 2 · Memorise this code — it disappears in 3 seconds'),el('div','seq vcode',codeR.split('').join(' ')));T(input,3000)};
+    const input=()=>{if(ended)return;w.innerHTML='';const sl=el('div','slots');const pad=el('div','pad');w.append(el('div','mute small','LOCK 2 · Type the code you saw'),sl,pad);
+      const draw=()=>{sl.innerHTML='';for(let i=0;i<6;i++)sl.appendChild(el('div','slot'+(i===entry.length?' cur':''),entry[i]||''))};
+      const press=v=>{if(ended||entry.length>=6)return;entry+=v;draw();if(entry.length===6){if(entry===codeR)unlock();else{penalty(0.06,'Wrong code — +6 seconds, here comes a new one');T(show,900)}}};
+      if(autoName){const fail=rnd()<0.3;const typed=fail?codeR.slice(0,4)+((+codeR[4]+3)%10)+codeR[5]:codeR;typed.split('').forEach((d,i)=>T(()=>press(d),500+i*450));}
+      else{for(let d=1;d<=10;d++){const v=d%10;const k=el('button','key',String(v));k.onclick=()=>press(String(v));pad.appendChild(k)}
+        const bk=el('button','key wide','⌫ DELETE');bk.onclick=()=>{entry=entry.slice(0,-1);draw()};pad.append(bk);
+        document.onkeydown=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace'){entry=entry.slice(0,-1);draw()}}}
+      draw()};
+    show()}
+  // ---- Lock 3: Final Code + Inside Man
+  function lock3(){showInsider();const w=$('#work');let g=[];const hist=[];w.innerHTML='';
+    const info=el('div','mute small','LOCK 3 · Crack the 3-digit code (no repeats). ● right digit, right place · ○ right digit, wrong place');
+    const sl=el('div','slots'),pad=el('div','pad'),hl=el('div','hist');w.append(info,sl,pad,hl);
+    const draw=()=>{sl.innerHTML='';for(let i=0;i<3;i++)sl.appendChild(el('div','slot'+(i===g.length?' cur':''),g[i]!=null?g[i]:''));
+      hl.innerHTML='';hist.slice().reverse().forEach((h,i)=>hl.appendChild(el('div','hrow',`<span class="mute small">#${hist.length-i}</span><span class="d">${h.g.join('')}</span><span><span class="pg">${'●'.repeat(h.a)}</span><span class="pa">${'○'.repeat(h.b)}</span>${h.a+h.b?'':'<span class="mute">—</span>'}</span>`)))};
+    const submit=()=>{if(ended||g.length<3)return;const [a,b]=feedback(code3,g);hist.push({g:g.slice(),a,b});g=[];draw();if(a===3)unlock();else penalty(0.03,'Not yet — +3 seconds')};
+    const press=v=>{if(ended||g.length>=3||g.includes(v))return;g.push(v);draw()};
+    if(autoName){let cand=[];for(const x of D10)for(const y of D10)for(const z of D10)if(x!==y&&y!==z&&x!==z)cand.push([x,y,z]);
+      const trust=rnd()<0.6;T(()=>{chatPush(autoName,trust?'ok… I trust the Inside Man':'nah, that\'s a bluff');if(LIVE)host(trust?`${autoName} is trusting the Inside Man!`:`${autoName} thinks it's a bluff!`)},2500);
+      const go=()=>{if(ended)return;let pick=cand[Math.floor(rnd()*cand.length)];g=pick.slice();draw();T(()=>{const [a,b]=feedback(code3,pick);cand=cand.filter(c=>{const [x,y]=feedback(c,pick);return x===a&&y===b});submit();if(!ended&&lock<3)T(go,2600+rnd()*2400)},800)};T(go,3500)}
+    else{for(let d=1;d<=10;d++){const v=d%10;const k=el('button','key',String(v));k.onclick=()=>press(v);pad.appendChild(k)}
+      const bk=el('button','key wide','⌫ DELETE');bk.onclick=()=>{g.pop();draw()};const cl=el('button','key','C');cl.onclick=()=>{g=[];draw()};const go=el('button','key wide','ENTER ↵');go.style.color='var(--gold)';go.onclick=submit;pad.append(bk,cl,go);
+      document.onkeydown=e=>{if(/^[0-9]$/.test(e.key))press(+e.key);else if(e.key==='Backspace'){g.pop();draw()}else if(e.key==='Enter'){e.preventDefault();submit()}}}
+    draw()}
+  function showInsider(){trustPoll=Math.round(40+rnd()*35);
+    const b=$('#ins');b.innerHTML=`<div class="insider"><div class="iav">🕵️</div><div style="flex:1"><div class="mute small mono">MESSAGE FROM THE INSIDE MAN · ${insider}</div><div class="itip">“${tip}”</div><div class="mute small">The Inside Man has seen the code. They win a bonus if ${autoName?autoName+' leaves':'you leave'} with less than half the grand prize. Truth — or bluff?</div><div id="ipoll"></div><div class="row" id="ivote" style="margin-top:8px"></div></div></div>`;
+    const drawPoll=()=>{$('#ipoll').innerHTML=`<div class="mute small" style="margin:10px 0 4px">AUDIENCE: CAN WE TRUST THE INSIDE MAN?</div><div class="pollbar"><div style="width:${trustPoll}%;background:var(--cyan);color:#06222c">TRUST ${trustPoll}%</div><div style="width:${100-trustPoll}%;background:#2a2f38;justify-content:flex-end">BLUFF ${100-trustPoll}%</div></div>`};drawPoll();
+    if(autoName&&!voted){const iv=$('#ivote');iv.innerHTML='<span class="mute small" style="width:100%">🔮 PREDICT (+30 pts if right):</span>';iv.append(button('TRUTH','sm',()=>{voted=true;predIns='trust';trustPoll=Math.min(95,trustPoll+2);drawPoll();iv.innerHTML='<span class="mute small">🔮 You predicted: TRUTH — revealed when The Vault opens</span>'}),button('BLUFF','ghost sm',()=>{voted=true;predIns='bluff';trustPoll=Math.max(5,trustPoll-2);drawPoll();iv.innerHTML='<span class="mute small">🔮 You predicted: BLUFF — revealed when The Vault opens</span>'}))}
+    if(LIVE)host(`A message from the Inside Man… "${tip}" Truth — or bluff?`);chatMood('final')}
+  function openVault(){frozen=cur();const v=valueFor(frozen),label=labelFor(frozen);$('#vlabel').textContent='THE VAULT IS OPEN';upd();clearInterval(tmr);
+    $('#work').innerHTML=`<div class="vopen">🔓 THE VAULT IS OPEN</div>`;T(()=>finish(v,`Opened The Vault in ${fmt(eff())}${tpen?` (including ${tpen}s of penalties)`:''}`,label),2200)}
+  function timeUp(){if(frozen!=null)return;frozen=FLOOR;upd();clearInterval(tmr);flash('Time is up — the vault has locked','r');T(()=>finish(valueFor(FLOOR),'Ran out of time — The Vault locked at its guaranteed minimum',labelFor(FLOOR)),1800)}
+  function finish(amount,how,label){
+    if(ended)return;ended=true;clearT();clearInterval(tmr);document.onkeydown=null;
+    if(!isPrize)label='AED '+amount.toLocaleString()+' cash';
+    if(LIVE){host(`${name} walks away with ${label}! And the Inside Man… ${honest?'was telling the truth.':'was bluffing!'}`);chatMood('results');LIVE_AUTO=!!autoName;addWinner(name,amount,how,label);LIVE_AUTO=false}
+    if(!autoName){state.prize=amount;state.prizeHow=how;state.prizeLabel=label}
+    const predRes=[];if(autoName){if(predVal){const ok=(amount>=THR)===(predVal==='yes');predRes.push(`Value prediction: ${ok?'✓ right (+30)':'✗ wrong'}`);T(()=>addPoints(ok?30:0,ok),400)}
+      if(predIns){const ok=(predIns==='trust')===honest;predRes.push(`Inside Man prediction: ${ok?'✓ right (+30)':'✗ wrong'}`);T(()=>addPoints(ok?30:0,ok),3000)}}
+    app.innerHTML='';const r=el('div','card center');
+    r.innerHTML=`<div class="mute small mono">THE VAULT · GAME #${schedule().num}</div><h1>${autoName?autoName+' wins':'You take home'} <span class="gold">${label}</span></h1>${isPrize&&!label.startsWith('AED')?`<div class="mute">worth AED ${amount.toLocaleString()}</div>`:''}
+      <p class="mute" style="line-height:1.6">${how}.</p>
+      <div class="insider" style="text-align:left;max-width:560px;margin:16px auto"><div class="iav">🕵️</div><div><div class="mute small mono">THE INSIDE MAN · ${insider}</div><div class="itip" style="font-size:16px">“${tip}”</div><div><b style="color:${honest?'var(--green)':'var(--red)'}">${honest?'TRUTH — the tip was real.':'BLUFF — the tip was a lie.'}</b> <span class="mute">The code was ${code3.join('')}.</span></div></div></div>`;
+    if(!autoName)r.appendChild(el('div','nextbox',`<div class="mute small mono" style="margin-bottom:10px">WHAT HAPPENS NEXT</div>${PAY_STEPS.slice(1).map(([i,t,d])=>`<div class="nx"><span>${i}</span><div><b>${t}</b><div class="mute small">${d}</div></div></div>`).join('')}<div class="mute small" style="margin-top:8px">We've just sent a confirmation to the mobile number and email you registered with.</div>`));
+    if(predRes.length)r.appendChild(el('div','predbox',`<div class="mute small mono">🔮 YOUR PREDICTIONS</div>${predRes.map(x=>`<div>${x}</div>`).join('')}<div class="mute small">Total: ${PROF.points+0} points so far — for fun only, no prizes.</div>`));
+    if(LIVE)interview(r,!!autoName,name);
+    const row=el('div','row');row.style.justifyContent='center';row.append(button(CTRIAL?'BACK TO CREATOR':autoName?'SEE RESULTS':'SEE FINAL RESULT','',()=>CTRIAL?creatorPage():finalScreen()));r.appendChild(row);app.appendChild(r);
+  }
+  // ---- intro
+  const w=$('#work');w.innerHTML=`<div class="vintro"><p>${autoName?`<b>${autoName}</b> has`:'You have'} beaten ${(FIELD-1).toLocaleString()} players. The Vault holds <b class="gold">${labelFor(TOP)}</b>. Open all three locks within <b>${fmt(TIERS[0][0])}</b> and it's ${autoName?'theirs':'yours'}.</p>
+    <p class="mute">Three locks: <b>Speed Run</b>, <b>Recall</b> and the <b>Final Code</b>. A strong, clean run makes it in time. Take longer and the prize steps down one level every 20 seconds — and every mistake adds a time penalty. Before the last lock, the <b>Inside Man</b> sends one tip — truth or bluff.</p></div>`;
+  if(LIVE)host(autoName?`${autoName} has beaten everyone. The Vault holds ${labelFor(TOP)} — open three locks in ${fmt(TIERS[0][0])} and it's theirs.`:`You've beaten everyone. The Vault holds ${labelFor(TOP)}. Open three locks in ${fmt(TIERS[0][0])} and it's yours.`);
+  const start=()=>{if(t0!=null)return;t0=performance.now();if(LIVE)host('The clock is running — go, go, go!');drawLocks();lock1()};
+  if(autoName){const pb=el('div','predbox',`<div class="mute small mono">🔮 PREDICTION · +30 POINTS (FOR FUN — NO PRIZES)</div><p style="margin:6px 0 10px">Will <b>${autoName}</b> open The Vault worth <b class="gold">${isPrize?'a year of free fuel or more':'AED 50,000 or more'}</b>?</p><div class="row"></div>`);
+    pb.querySelector('.row').append(button('YES','sm',()=>{predVal='yes';pb.querySelector('.row').innerHTML='<span class="mute small">Locked in: YES</span>'}),button('NO','ghost sm',()=>{predVal='no';pb.querySelector('.row').innerHTML='<span class="mute small">Locked in: NO</span>'}));w.appendChild(pb);
+    const cd=el('div','mute small mono');w.appendChild(cd);let n=7;const tk=()=>{cd.textContent=`${autoName} starts in ${n}…`;if(n--<=0){start();return}T(tk,1000)};tk()}
+  else{const rr=el('div','row');rr.style.justifyContent='center';rr.append(button('START — OPEN THE VAULT','lg',start));w.appendChild(rr)}
+}
+
+function finalScreen(){
+  if(state.spectator){app.innerHTML='';const c=el('div','card center');c.innerHTML=`<div class="mute small mono">THANKS FOR WATCHING</div><h1>That's the show.</h1><p class="mute">The champion has been added to the Hall of Champions. Register for the next game to play for the vault yourself.</p>`;
+    const r=el('div','row');r.style.justifyContent='center';r.append(button('SEE ALL WINNERS','',winnersPage),button('BACK TO HOME','ghost',home));c.appendChild(r);app.appendChild(c);host("That's the show! Same time next game — new puzzles, new vaults.");return}
+  app.innerHTML='';const total=state.scores.reduce((a,b)=>a+(b||0),0);
+  const win=state.elimAt===-1&&state.ranks[4]===1;
+  const c=el('div','card center');
+  if(win&&state.prize==null){c.innerHTML=`<div class="mute small mono">GAME CHAMPION</div><h1 class="gold">You beat ${(FIELD-1).toLocaleString()} players.</h1><p class="mute">One step left: The Vault. Open three locks within 75 seconds to win ${topVault()}.</p>`;
+    const rr=el('div','row');rr.style.justifyContent='center';rr.append(button('ENTER THE VAULT · FINALE','',()=>vaultRoom()));c.appendChild(rr);app.appendChild(c);return}
+  if(state.prize!=null)c.innerHTML=`<div class="mute small mono">${win?'GAME CHAMPION':'VAULT ROOM DEMO'}</div><h1 class="gold">${win?'You cracked the vault.':'The Vault complete'}</h1><div class="prize" style="margin:16px 0"><div style="text-align:left"><div class="mute small">${win?'PRIZE WON':'DEMO RESULT (NOT A REAL PRIZE)'}</div><b>${state.prizeHow}</b></div><div class="amt" style="text-align:right">${state.prizeLabel||'AED '+state.prize.toLocaleString()}${(state.prizeLabel||'').startsWith('AED')?'':`<div class="mute small" style="font-family:inherit">worth AED ${state.prize.toLocaleString()}</div>`}</div></div>`;
+  else if(state.elimAt===-1)c.innerHTML=`<div class="mute small mono">FINALIST</div><h1>So close. <span class="gold">#${state.ranks[4]}</span> of 10</h1><p class="mute">You made the final out of ${FIELD.toLocaleString()} players, but someone cracked it faster.</p>`;
+  else c.innerHTML=`<div class="mute small mono">RUN COMPLETE</div><h1>Out at Stage ${state.elimAt+1}</h1><p class="mute">Knocked out in ${STAGES[state.elimAt].name}. ${LIVE?'You watched the rest of the show live.':'You finished the rest as practice.'}</p>`;
+  c.innerHTML+=`<div class="mute small" style="margin-top:6px">TOTAL SCORE</div><div class="big">${total.toLocaleString()}</div>`;
+  app.appendChild(c);
+  const b=el('div','card');b.appendChild(el('h3','','Your gauntlet'));const tb=el('table','lb');
+  STAGES.forEach((s,i)=>{if(state.scores[i]==null){tb.appendChild(el('tr','',`<td class="k">${i+1}</td><td>${s.name}</td><td class="r mute">—</td><td class="r mute">—</td><td class="r"><span class="pill pr">SPECTATED</span></td>`));return}const res=i<state.elimAt||state.elimAt===-1?(state.adv[i]?'<span class="pill ok">PASS</span>':'<span class="pill no">OUT</span>'):i===state.elimAt?'<span class="pill no">OUT</span>':`<span class="pill pr">${state.adv[i]?'WOULD PASS':'WOULD FAIL'}</span>`;
+    tb.appendChild(el('tr','',`<td class="k">${i+1}</td><td>${s.name}</td><td class="r">${state.scores[i]}</td><td class="r mute">#${state.ranks[i]} / ${state.fields[i]}</td><td class="r">${res}</td>`))});
+  b.appendChild(tb);
+  const r=el('div','row');r.style.marginTop='18px';
+  r.append(button('BACK TO HOME','',home));
+  if(!win&&state.prize==null&&!LIVE)r.append(button('TRY THE VAULT · FINALE (DEMO)','ghost',()=>vaultRoom()));
+  if(LIVE){T(()=>host("That's the show! Same time next game — new puzzles, new vaults."),400);r.append(button('SEE ALL WINNERS','ghost',winnersPage),button('MY ACCOUNT','ghost',()=>go('account')))}
+  b.appendChild(r);
+  if(LIVE){const last=state.elimAt===-1?4:state.elimAt;const stage=state.elimAt===-1?(win?6:5):state.elimAt+1;const sch=schedule();const u=meName();
+    if(!state.recorded){state.recorded=true;PROF.history.push({num:sch.num,t:Date.now(),stage,stageName:stage<=5?STAGES[stage-1].name:'The Vault',rank:state.ranks[last],field:FIELD,prize:win&&state.prize!=null?state.prizeLabel:null,champ:win&&state.prize!=null});if(!PROF.username&&REG)PROF.username=REG.username;saveProf()}
+    const o=win&&state.prize!=null?{num:sch.num,big:'CHAMPION',bigSize:150,line:`Won ${state.prizeLabel}`,sub:`Beat ${(FIELD-1).toLocaleString()} players and opened The Vault`,user:u,text:`🏆 I won ${state.prizeLabel} on The Vault — beating ${(FIELD-1).toLocaleString()} players!`}
+      :state.elimAt===-1?{num:sch.num,big:'#'+state.ranks[4],line:'in the final 10',sub:`out of ${FIELD.toLocaleString()} players`,user:u,text:`🔐 I made the final 10 out of ${FIELD.toLocaleString()} players on The Vault!`}
+      :{num:sch.num,big:'#'+state.ranks[last],line:`out of ${FIELD.toLocaleString()} players`,sub:`Reached Stage ${stage} · ${STAGES[last].name}`,user:u,text:`🔐 I finished #${state.ranks[last]} out of ${FIELD.toLocaleString()} on The Vault — reached Stage ${stage}.`};
+    app.appendChild(b);app.appendChild(shareBox(o));return}
+  app.appendChild(b);
+}
+
+const IQS=[["How are you feeling right now?",["I can't believe it! 😱","My hands are shaking 😅","I knew I could do it 💪"]],["Did you trust the Inside Man?",["Yes, I trusted the tip","No — I called the bluff","I ignored it completely"]],["What will you do with your prize?",["Treat my family","Save it","Book a holiday ✈️"]]];
+function interview(container,auto,name){let qi=0;const box=el('div','interview');container.appendChild(box);
+  const ask=()=>{if(qi>=IQS.length){box.innerHTML=`<div class="mute small mono">🎙 CHAMPION INTERVIEW</div><p class="iq">That's a wrap — congratulations, ${name}! 🎉</p>`;host(`That's a wrap. Congratulations, ${name}! See you all next game.`);return}
+    const [q,opts]=IQS[qi];host(`${name}, ${q.charAt(0).toLowerCase()+q.slice(1)}`);
+    box.innerHTML=`<div class="mute small mono">🎙 CHAMPION INTERVIEW · LIVE WITH NOOR</div><p class="iq">“${q}”</p><div class="row"></div>`;const row=box.querySelector('.row');
+    const answer=a=>{chatPush(name,a,!auto);row.innerHTML=`<span class="ians">${name}: “${a}”</span>`;T(()=>{host(['Love that!','Ha — great answer.','Brilliant. Enjoy every bit of it!'][qi]);qi++;T(ask,2600)},1400)};
+    if(auto)T(()=>answer(opts[Math.floor(Math.random()*opts.length)]),2600);else opts.forEach(o=>row.appendChild(button(o,'ghost sm',()=>answer(o))))};
+  T(ask,2200)}
+function deviceCheck(){const d=el('div','devcheck',`<div class="mute small mono" style="margin-bottom:8px">DEVICE CHECK</div>`);
+  const w=window.innerWidth,h=window.innerHeight,ms=Math.round(18+Math.random()*40);
+  const items=[['Browser',/Chrome|Safari|Firefox|Edg/.test(navigator.userAgent)?'Supported':'Supported'],['Screen',`${w}×${h} — fits the games`],['Connection',`${ms} ms — excellent`],['Sound',('speechSynthesis' in window)?'Host voice ready':'Captions on'],['Game clock','Synced with the game server']];
+  items.forEach(([k,v],i)=>{const r=el('div','dc',`<span class="dci">⏳</span><b>${k}</b><span class="mute">checking…</span>`);d.appendChild(r);T(()=>{r.innerHTML=`<span class="dci pg">✓</span><b>${k}</b><span class="mute">${v}</span>`;if(i===items.length-1)d.appendChild(el('div','regok',"✓ You're ready. Keep this screen open."))},700+i*650)});
+  return d}
+function shareCardImg(o){const cv=document.createElement('canvas');cv.width=1080;cv.height=1080;const x=cv.getContext('2d');
+  x.fillStyle='#07080b';x.fillRect(0,0,1080,1080);let g=x.createRadialGradient(860,140,20,860,140,700);g.addColorStop(0,'rgba(231,181,74,.35)');g.addColorStop(1,'rgba(231,181,74,0)');x.fillStyle=g;x.fillRect(0,0,1080,1080);
+  x.strokeStyle='rgba(255,255,255,.04)';x.lineWidth=2;for(let i=0;i<=1080;i+=60){x.beginPath();x.moveTo(i,0);x.lineTo(i,1080);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(1080,i);x.stroke()}
+  x.strokeStyle='rgba(231,181,74,.35)';x.lineWidth=14;x.beginPath();x.arc(900,880,260,0,Math.PI*2);x.stroke();x.lineWidth=4;x.beginPath();x.arc(900,880,200,0,Math.PI*2);x.stroke();
+  x.fillStyle='#e7b54a';x.font='800 46px Unbounded, Arial, sans-serif';x.fillText('THE VAULT',80,130);x.fillStyle='#8b93a1';x.font='500 32px "JetBrains Mono", monospace';x.fillText(`GAME #${o.num} · FREE LIVE GAME SHOW`,80,185);
+  x.fillStyle='#f5d27a';x.font=`800 ${o.bigSize||220}px Unbounded, Arial, sans-serif`;x.fillText(o.big,72,480);
+  x.fillStyle='#eef0f3';x.font='700 54px Unbounded, Arial, sans-serif';x.fillText(o.line,80,580);x.fillStyle='#aab2bf';x.font='500 40px "Space Grotesk", Arial, sans-serif';x.fillText(o.sub,80,650);
+  x.fillStyle='#eef0f3';x.font='700 46px "Space Grotesk", Arial, sans-serif';x.fillText('@'+o.user,80,900);x.fillStyle='#8b93a1';x.font='500 32px "Space Grotesk", Arial, sans-serif';x.fillText('Can you beat me? the-vault-demo-gamma.vercel.app',80,955);x.fillText('Presented by YOUR SPONSOR',80,1005);
+  return cv.toDataURL('image/png')}
+function shareBox(o){const url=shareCardImg(o);const txt=`${o.text} Play free: https://the-vault-demo-gamma.vercel.app`;const b=el('div','card sharebox');
+  b.innerHTML=`<h3>Share your result</h3><div class="sharegrid"><img src="${url}" alt="Your result card"><div><p style="margin:0 0 6px;font-size:17px">${o.text}</p><p class="mute small" style="margin:0 0 14px">Long-press (phone) or right-click (computer) the image to save it.</p>
+   <div class="row"><a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">WhatsApp</a><a class="btn ghost sm" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}">Post on X</a><a class="btn ghost sm" href="${url}" download="my-vault-result.png">Download</a><button class="btn ghost sm" id="cpt">Copy text</button></div></div></div>`;
+  b.querySelector('#cpt').onclick=e=>{try{navigator.clipboard.writeText(txt);e.target.textContent='Copied ✓'}catch(_){e.target.textContent='Copy failed'}};return b}
+
+/* ---------- live show engine ---------- */
+var LIVE=false,timers=[],chatIv=null,mood='lobby',viewers=0;
+function T(fn,ms){const id=setTimeout(fn,ms);timers.push(id);return id}
+function clearT(){timers.forEach(clearTimeout);timers=[]}
+const POOLS={
+ lobby:['lets gooo','first time playing 👋','who is cracking it tonight?','100k 😳','good luck everyone','hello from London 👋','last week stage 4 destroyed me','ready 💪','Dubai in the house 🙌','Manila represent!','hi Noor!','Lagos is watching 🇳🇬','Toronto here, 1pm lunch break game 😂','Mumbai 🔥'],
+ play:['this one is HARD','my brain 🔥','done!','how are people this fast','sequence 4 ??','😭😭','focus focus','ok that was easy actually','the mirrors 😵','who else is still on it','memory level 5 is evil','locked in'],
+ results:['made it!!','out 😭 gg','next one lets go','top 100 baby','so close','gg all','who is #1??','spectating now 👀','that cut-off was brutal'],
+ final:['GO GO GO','the money is melting 😭','TRUST HIM','that tip is a bluff 100%','faster!!','lock 3 lets gooo','🔥🔥🔥','my heart','don\'t trust the inside man','he\'s telling the truth','every second counts!!','this is insane']};
+function chatMood(m){mood=m}
+function rname(){return NAMES[Math.floor(Math.random()*NAMES.length)]+'_'+(Math.floor(Math.random()*98)+2)}
+function chatPush(n,msg,me){const log=document.getElementById('chatlog');let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))%360;
+  const d=el('div','',`<b style="color:${me?'var(--gold)':`hsl(${h},65%,70%)`}">${n}</b> <span${me?'':' style="color:#c9ced8"'}>${msg}</span>`);log.appendChild(d);while(log.children.length>40)log.firstChild.remove()}
+var VOICE=true,talkUntil=0,voiceObj=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();voiceObj=vs.find(v=>/^en/.test(v.lang)&&/Female|Libby|Sonia|Serena|Samantha|Aria|Jenny|Zira|Karen|Moira/i.test(v.name))||vs.find(v=>/^en-GB/.test(v.lang))||vs.find(v=>/^en/.test(v.lang))||null}catch(e){}}
+try{speechSynthesis.onvoiceschanged=pickVoice;pickVoice()}catch(e){}
+function host(t){const c=document.getElementById('cap');if(c)c.textContent=t;talkUntil=performance.now()+Math.min(9000,t.length*62);
+  if(VOICE&&LIVE){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.replace(/AED ([\d,]+)/g,'$1 dirhams').replace(/[^\p{L}\p{N}\p{P}\s]/gu,'').replace(/—/g,','));u.rate=1.05;u.pitch=1.08;if(voiceObj)u.voice=voiceObj;u.onstart=()=>{talkUntil=performance.now()+60000};u.onend=()=>{talkUntil=0};speechSynthesis.speak(u)}catch(e){}}}
+(function anim(){const now=performance.now();const m=document.getElementById('hmouth');
+  if(m&&document.getElementById('stream').style.display!=='none'){const talking=now<talkUntil;
+    m.setAttribute('ry',talking?(1.5+Math.abs(Math.sin(now/75))*5.5*(0.55+0.45*Math.sin(now/260))).toFixed(2):'1.5');m.setAttribute('rx',talking?'8':'9');
+    const blink=(now%4300)<120;['heyeL','heyeR'].forEach(id=>document.getElementById(id).setAttribute('ry',blink?'0.6':'4'));
+    document.getElementById('hring').setAttribute('stroke-opacity',talking?(0.25+0.15*Math.sin(now/120)).toFixed(2):'0.18');
+    document.getElementById('hscan').setAttribute('y',(20+((now/25)%80)).toFixed(1));
+    document.getElementById('hhead').setAttribute('transform',`translate(0 ${(Math.sin(now/900)*1.2).toFixed(2)}) rotate(${(talking?Math.sin(now/500)*2:0).toFixed(2)} 100 70)`)}
+  requestAnimationFrame(anim)})();
+$('#vbtn').onclick=()=>{VOICE=!VOICE;$('#vbtn').textContent=VOICE?'🔊 VOICE ON':'🔇 VOICE OFF';if(!VOICE)try{speechSynthesis.cancel()}catch(e){}};
+function streamScene(t){document.getElementById('scene').textContent=t}
+function setViewers(n){viewers=n;document.getElementById('viewers').textContent=Math.round(n).toLocaleString()+' watching'}
+function stopLive(){try{speechSynthesis.cancel()}catch(e){};LIVE=false;clearT();clearInterval(chatIv);document.getElementById('stream').style.display='none'}
+function startLive(spect){
+  clearInterval(tmr);resetRun();state.spectator=!!spect;nav('');
+  LIVE=true;document.getElementById('stream').style.display='';document.getElementById('chatlog').innerHTML='';setViewers(420);
+  clearInterval(chatIv);chatIv=setInterval(()=>{if(Math.random()<.75)chatPush(rname(),POOLS[mood][Math.floor(Math.random()*POOLS[mood].length)]);if(viewers>1000)setViewers(viewers+(Math.random()*30-14))},850);
+  lobby();
+}
+function lobby(){
+  clearT();clearInterval(tmr);streamScene('PRE-SHOW');chatMood('lobby');
+  const lines=['Good evening and welcome to The Vault!',`Tonight's top vault: ${topVault()} — presented by YOUR SPONSOR.`,'Five stages. Pure skill. Only one of you reaches The Vault.','Find a quiet spot — every stage starts for everyone at the same second.'];
+  app.innerHTML='';const c=el('div','card center');
+  c.innerHTML=`<div class="mute small mono">TONIGHT · 9:00 PM UAE · GAME #${schedule().num}</div><h2 style="margin-top:8px">The show starts in</h2><div class="cd" id="lc">0:20</div>
+   <div class="row" style="justify-content:center;gap:24px;margin:6px 0 16px"><div><div class="mute small">PLAYERS IN THE VAULT</div><div class="mono gold" style="font-size:26px;font-weight:700" id="pj">0</div></div><div><div class="mute small">TOP VAULT</div><div class="mono" style="font-size:22px;font-weight:700">${topVault()}</div></div></div>
+   <p class="mute small">${state.spectator?'<span class="pill pr">SPECTATOR MODE</span><br><br>You\'re not registered for this game, so you\'re watching. Chat is open — register for the next game to play.':`You're in as <b style="color:var(--text)">${meName()}</b>. Keep this screen open — Stage 1 will launch automatically.`}</p>`;
+  if(!state.spectator)c.appendChild(deviceCheck());
+  const r=el('div','row');r.style.justifyContent='center';r.append(button('SKIP COUNTDOWN (DEMO)','ghost',()=>{clearT();state.spectator?spectate(0):liveIntro(0)}));c.appendChild(r);app.appendChild(c);
+  let n=20;host(lines[0]);
+  const tick=()=>{const p=Math.round(FIELD*Math.pow((20-n)/20,0.7));$('#pj').textContent=p.toLocaleString();setViewers(420+p*1.35);$('#lc').textContent=fmt(n);
+    if(n%5===0)host(lines[(20-n)/5%lines.length]);if(n--<=0){state.spectator?spectate(0):liveIntro(0);return}T(tick,1000)};tick();
+}
+function liveIntro(i){
+  clearT();clearInterval(tmr);document.onkeydown=null;const S=STAGES[i];const left=bots.filter(b=>b.alive).length+1;if(viewers<FIELD*1.3)setViewers(FIELD*1.3+Math.random()*200);
+  streamScene('STAGE '+(i+1)+' · '+S.name.toUpperCase());chatMood('lobby');
+  host([`Stage 1: ${S.name}. ${left.toLocaleString()} players — only 500 survive. Get ready…`,`Stage 2: ${S.name}. ${left} of you left. Half go home after this one.`,`Stage 3: ${S.name}. ${left} players remain. Only 100 move on.`,`Stage 4: ${S.name}. Only the top 10 reach the final.`,`The final ten. Code Breaker. Whoever cracks it best walks into The Vault.`][i]);
+  app.innerHTML='';const c=el('div','card center');
+  c.innerHTML=`<div class="mute small mono">STAGE ${i+1} OF 5 · STARTS FOR EVERYONE IN</div><div class="cd" id="sc">8</div><h1>${S.name}</h1><p style="line-height:1.6;max-width:560px;margin:8px auto">${S.how}</p><div class="mute small">${left.toLocaleString()} players remaining · ${S.cutLabel} · ⏱ ${fmt(S.time)}</div>`;
+  app.appendChild(c);let n=8;const tick=()=>{$('#sc').textContent=n;if(n--<=0){chatMood('play');playStage(i);return}T(tick,1000)};tick();
+}
+function liveBoard(tb,rows,meScore,cut,total){
+  if(!tb._w){const w=el('div','lbwrap');tb.parentNode.insertBefore(w,tb);
+    const tools=el('div','lbtools',`<input placeholder="Search any player…" maxlength="20"><span class="mute small lbcount"></span>`);
+    const jump=button('JUMP TO ME','ghost sm',()=>{const m=sc.querySelector('tr.me');if(m)sc.scrollTop=m.offsetTop-sc.clientHeight/2});tools.appendChild(jump);
+    const sc=el('div','lbscroll');w.append(tools,sc);sc.appendChild(tb);tb._w={sc,inp:tools.querySelector('input'),cnt:tools.querySelector('.lbcount'),jump};
+    tb._w.inp.oninput=()=>liveBoard(tb,tb._rows,tb._me,tb._cut,tb._total)}
+  tb._rows=rows;tb._me=meScore;tb._cut=cut;tb._total=total;
+  const W=tb._w;W.jump.style.display=meScore!=null?'':'none';
+  const list=[...rows.map(b=>({name:b.name,s:b.s})),...(meScore!=null?[{name:meName(),s:meScore,me:true}]:[])].sort((a,b)=>b.s-a.s||(a.me?-1:b.me?1:0));
+  const q=W.inp.value.trim().toLowerCase();let h='';
+  list.forEach((x,k)=>{if(cut&&k===cut&&!q)h+=`<tr class="cutrow"><td colspan="4">— CUT LINE · top ${cut.toLocaleString()} advance —</td></tr>`;
+    if(q&&!x.name.toLowerCase().includes(q))return;
+    h+=`<tr class="${x.me?'me':''}${cut&&k>=cut?' out':''}"><td class="k">#${k+1}</td><td>${x.name}${x.me?' <span class="pill ok">YOU</span>':''}</td><td class="r">${x.s}</td><td class="r st">${cut?(k<cut?'<span class="pg">▲</span>':'<span class="mute">✗</span>'):''}</td></tr>`});
+  tb.innerHTML=h||'<tr><td class="mute" colspan="4">No player found</td></tr>';
+  W.cnt.textContent=`${list.length.toLocaleString()} players shown${total&&total>list.length?' of '+total.toLocaleString():''}`;
+}
+function waiting(i,score,note){
+  clearT();const S=STAGES[i];const alive=shuffle(bots.filter(b=>b.alive),Math.random);const total=alive.length;
+  host('Scores are pouring in… the leaderboard is moving fast!');chatMood('play');
+  app.innerHTML='';const c=el('div','card');
+  c.innerHTML=`<div class="row" style="justify-content:space-between"><div class="mute small mono">STAGE ${i+1} · LOCKED IN</div><span class="pill pr">WAITING FOR OTHERS</span></div><h2 style="margin-top:8px">Your score: <span class="gold">${score}</span></h2><div class="mute small" style="margin-bottom:12px">${note}</div><h3>Live leaderboard · <span id="wt"></span></h3>`;
+  const tb=el('table','lb');c.appendChild(tb);app.appendChild(c);
+  let k=0;const steps=12;const tick=()=>{k++;const n=Math.ceil(total*k/steps);liveBoard(tb,alive.slice(0,n).map(b=>({name:b.name,s:b.scores[i]})),score,S.cut,total+1);
+    $('#wt').textContent=k>=steps?'all scores in':`${(total-n).toLocaleString()} still playing`;if(k>=steps){T(()=>stageResult(i,score,note),1200);return}T(tick,550)};tick();
+}
+function liveAfterResult(i,adv,board,r){
+  r.innerHTML='';chatMood('results');
+  let next,label;
+  if(i<4){if(adv){next=()=>liveIntro(i+1);label="I'M READY"}else{next=()=>spectate(i+1);label='WATCH AS SPECTATOR'}}
+  else{if(adv){next=()=>vaultRoom();label='ENTER THE VAULT · FINALE'}else{next=()=>vaultRoom(board[0].name);label='WATCH THE VAULT · FINALE'}}
+  host(adv?(i<4?`${STAGES[i].cut} players are through to ${STAGES[i+1].name}. Next stage in a moment!`:'WE HAVE A CHAMPION! Heading into The Vault…'):(i<4?`${STAGES[i].cut} advance — tough cut tonight. Everyone else, stay and watch!`:`${board[0].name} cracked it best — they're going into The Vault!`));
+  const cd=el('div','mute small mono');r.append(button(label,'',()=>{clearT();next()}),cd);
+  let n=i===4?10:15;const tick=()=>{cd.textContent=(i<4&&adv?'Next stage starts':'Continuing')+` in ${n}s`;if(n--<=0){clearT();next();return}T(tick,1000)};tick();
+}
+/* ---------- spectator player cams ---------- */
+function solveSlide(b){const start=b.join(''),goal='123456780';const prev=new Map([[start,null]]);const q=[start];let h=0;
+  while(h<q.length){const st=q[h++];if(st===goal)break;const e=st.indexOf('0');for(const n of adj(e)){const a=st.split('');a[e]=a[n];a[n]='0';const t=a.join('');if(!prev.has(t)){prev.set(t,[st,n]);q.push(t)}}}
+  const mv=[];let st=goal;while(prev.get(st)){const [p,n]=prev.get(st);mv.push(n);st=p}return mv.reverse()}
+let PERMS=null;
+function perms(){if(PERMS)return PERMS;PERMS=[];const rec=(a,used)=>{if(a.length===5){PERMS.push(a.slice());return}for(let d=0;d<10;d++)if(!used[d]){used[d]=1;a.push(d);rec(a,used);a.pop();used[d]=0}};rec([],[]);return PERMS}
+function miniLaser(lv,beam){
+  const CS=60,OX=34,OY=10,W=OX+LN*CS+10,H=OY+LN*CS+10;let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:190px;background:#07080a;border-radius:8px">`;
+  for(let y=0;y<LN;y++)for(let x=0;x<LN;x++){const c=lv.grid[y][x],px=OX+x*CS,py=OY+y*CS;
+    if(c&&c.t==='mirror')s+=`<rect x="${px+1}" y="${py+1}" width="58" height="58" rx="6" fill="#161a20"/><polyline points="${c.m===0?`${px+12},${py+48} ${px+48},${py+12}`:`${px+12},${py+12} ${px+48},${py+48}`}" stroke="${c.flash?'#e7b54a':'#cfd6e2'}" stroke-width="6" stroke-linecap="round"/>`;
+    else if(c&&c.t==='wall')s+=`<rect x="${px+3}" y="${py+3}" width="54" height="54" rx="4" fill="#2a2f38"/>`;
+    else{s+=`<rect x="${px+1}" y="${py+1}" width="58" height="58" rx="6" fill="#0e1014"/>`;if(c&&c.t==='target')s+=`<circle cx="${px+30}" cy="${py+30}" r="20" fill="#1d1a10" stroke="#e7b54a" stroke-width="4"/>`}}
+  s+=`<rect x="4" y="${OY+lv.sr*CS+18}" width="24" height="24" rx="4" fill="#ff5d6d"/>`;
+  if(beam!==undefined){const t=traceGrid(lv.grid,lv.sr);const pts=[[28,OY+lv.sr*CS+30]];
+    t.cells.forEach(c=>{const cx=OX+c.x*CS+30,cy=OY+c.y*CS+30;if(c.stop==='wall')pts.push([cx-DIRS[c.d][1]*27,cy-DIRS[c.d][0]*27]);else pts.push([cx,cy])});
+    if(t.exit!=null){const l=pts[pts.length-1];pts.push([l[0]+DIRS[t.exit][1]*30,l[1]+DIRS[t.exit][0]*30])}
+    s+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${t.hit?'#3ecf8e':'#ff4d6d'}" stroke-width="6" stroke-linejoin="round"/>`}
+  return s+'</svg>';
+}
+const REPLAY={
+ lights(body,st,q,D){
+  const {on,sol}=genLights(mulberry32(SEED+66));const acts=[];shuffle(sol,Math.random).forEach(k=>{if(Math.random()<(1-q)*0.6){const d=Math.floor(Math.random()*25);acts.push(d,d)}acts.push(k)});
+  const g=el('div','mlo');body.appendChild(g);let taps=0;const finish=D*clamp(1.08-q*0.6,0.4,1.4);
+  const draw=k=>{g.innerHTML=on.map((v,x)=>`<div class="${v?'on':''}${x===k?' tap':''}"></div>`).join('');const l=on.reduce((a,b)=>a+b,0);st.textContent=l?`taps ${taps} · ${l} lit`:'CLEARED ✓';if(!l)st.style.color='var(--green)'};draw();
+  acts.forEach((k,j)=>{const t=finish*(j+1)/acts.length;if(t<D-300)T(()=>{loPress(on,k);taps++;draw(k)},t)});
+ },
+ math(body,st,q,D){
+  const qs=genMath(mulberry32(SEED+88));const nOk=clamp(Math.round(q*10+Math.random()-0.5),0,10);const okSet=new Set(shuffle([...Array(10).keys()],Math.random).slice(0,nOk));
+  const list=el('div','mp');body.appendChild(list);let correct=0;const step=D*clamp(1-q*0.35,0.6,1)/10.5;
+  qs.forEach((x,k)=>{T(()=>{const row=el('div','',`${x.q} = <span class="gold">?</span>`);row.id='mq'+k;list.appendChild(row);while(list.children.length>6)list.firstChild.remove();st.textContent=`q ${k+1}/10`},step*k);
+    T(()=>{const row=list.querySelector('#mq'+k);const ok=okSet.has(k);const pick=ok?x.answer:x.options.find(o=>o!==x.answer);if(ok)correct++;if(row)row.innerHTML=`${x.q} = <b style="color:${ok?'var(--green)':'var(--red)'}">${pick} ${ok?'✓':'✗'}</b>`;st.textContent=`${correct}/${k+1} correct`},step*k+step*0.8)});
+ },
+ simon(body,st,q,D){
+  const seq=genSimon(mulberry32(SEED+77));const reach=clamp(Math.round(q*10+Math.random()*1.5-0.75),0,10);const g=el('div','msim');body.appendChild(g);
+  const pads=SIMC.map(c=>{const p=el('div','');p.style.background=c;g.appendChild(p);return p});const lit=(k,ms,t)=>{T(()=>pads[k].classList.add('lit'),t);T(()=>pads[k].classList.remove('lit'),t+ms)};
+  let t=300+Math.random()*600;const fl=140+(1-q)*90;
+  for(let r=0;r<=Math.min(reach,9);r++){const len=r+3;const fail=r===reach;
+    const tt=t;T(()=>{st.textContent=`round ${r+1} · watching`},tt);for(let k=0;k<len;k++){lit(seq[k],fl,t);t+=fl+90}t+=250;
+    const t2=t;T(()=>{st.textContent=`round ${r+1} · repeating`},t2);const upto=fail?Math.floor(Math.random()*len):len;
+    for(let k=0;k<upto;k++){lit(seq[k],fl*0.8,t);t+=fl+60}
+    if(fail){const wrong=(seq[upto]+1+Math.floor(Math.random()*3))%4;lit(wrong,300,t);T(()=>{st.textContent=`✗ out at round ${r+1}`;st.style.color='var(--red)'},t);break}
+    if(r===9)T(()=>{st.textContent='PERFECT ✓';st.style.color='var(--green)'},t);t+=300;if(t>D)break}
+ },
+ hanoi(body,st,q,D){
+  const pegs=[[5,4,3,2,1],[],[]];const mv=hanoiMoves(5,0,1,2,[]);const g=el('div','mhn');body.appendChild(g);let moves=0;const finish=D*clamp(1.12-q*0.6,0.45,1.5);
+  const draw=()=>{g.innerHTML='';pegs.forEach(p=>{const pe=el('div','peg');p.forEach(d=>{const dk=el('div','disk');dk.style.width=(28+d*14)+'%';dk.style.background=DISKC[d-1];pe.appendChild(dk)});g.appendChild(pe)});st.textContent=pegs[2].length===5?'SOLVED ✓':`moves ${moves}`;if(pegs[2].length===5)st.style.color='var(--green)'};draw();
+  mv.forEach(([a,b],j)=>{const t=finish*(j+1)/mv.length;if(t<D-300)T(()=>{pegs[b].push(pegs[a].pop());moves++;draw()},t)});
+ },
+ lock(body,st,q,D){
+  const b=genSlide(mulberry32(SEED+11));const sol=solveSlide(b);const mv=[];let e=b.indexOf(0);
+  sol.forEach(n=>{if(Math.random()<(1-q)*0.7){const ns=adj(e).filter(x=>x!==n);const d=ns[Math.floor(Math.random()*ns.length)];mv.push(d,e)}mv.push(n);e=n});
+  const finish=D*clamp(1.08-q*0.6,0.4,1.4);let moves=0;
+  const g=el('div','ms');body.appendChild(g);
+  const draw=()=>{g.innerHTML=b.map((v,k)=>`<div class="${v?(v===k+1?'ok':''):'e'}">${v||''}</div>`).join('');st.textContent=slideSolved(b)?'SOLVED ✓':`moves ${moves}`;if(slideSolved(b))st.style.color='var(--green)'};
+  draw();let z=b.indexOf(0);
+  mv.forEach((n,k)=>{const t=finish*(k+1)/mv.length;if(t<D-300)T(()=>{b[z]=b[n];b[n]=0;z=n;moves++;draw()},t)});
+ },
+ pattern(body,st,q,D){
+  const seqs=genSeqs(mulberry32(SEED+22));const nOk=clamp(Math.round(q*6+Math.random()-0.5),0,6);const okSet=new Set(shuffle([0,1,2,3,4,5],Math.random).slice(0,nOk));
+  const list=el('div','mp');body.appendChild(list);let correct=0;const step=D*clamp(1-q*0.35,0.6,1)/6.5;
+  seqs.forEach((sq,k)=>{
+    T(()=>{const row=el('div','',`${sq.shown.join(',')},<span class="gold">?</span>`);row.id='mp'+k;list.appendChild(row);while(list.children.length>5)list.firstChild.remove();st.textContent=`seq ${k+1}/6`},step*k);
+    T(()=>{const row=list.querySelector('#mp'+k);const ok=okSet.has(k);const pick=ok?sq.answer:sq.options.find(o=>o!==sq.answer);if(ok)correct++;if(row)row.innerHTML=`${sq.shown.join(',')} → <b style="color:${ok?'var(--green)':'var(--red)'}">${pick} ${ok?'✓':'✗'}</b>`;st.textContent=`${correct}/${k+1} correct`},step*k+step*0.8);
+  });
+ },
+ memory(body,st,q,D){
+  const r=mulberry32(SEED+33);const L=[[4,4],[5,6],[5,8],[6,10],[6,12]];const g=el('div','mm');body.appendChild(g);const slot=D/5.3;let hits=0,need=0;
+  L.forEach(([n,k],li)=>{const set=shuffle([...Array(n*n).keys()],r).slice(0,k);const h=clamp(Math.round(k*clamp(q+Math.random()*0.2-0.1,0.2,1)),0,k);
+    const picks=[...set.slice(0,h),...shuffle([...Array(n*n).keys()].filter(x=>!set.includes(x)),Math.random).slice(0,k-h)];const pk=shuffle(picks,Math.random);
+    const t0=slot*li;
+    T(()=>{g.style.gridTemplateColumns=`repeat(${n},1fr)`;g.innerHTML='';for(let x=0;x<n*n;x++)g.appendChild(el('div',set.includes(x)?'lit':''));st.textContent=`level ${li+1}/5 · memorising`},t0);
+    T(()=>{[...g.children].forEach(c=>c.className='');st.textContent=`level ${li+1}/5 · recalling`},t0+slot*0.3);
+    pk.forEach((x,j)=>T(()=>{if(g.children[x])g.children[x].className='sel'},t0+slot*0.38+j*slot*0.45/k));
+    T(()=>{[...g.children].forEach((c,x)=>{const s1=set.includes(x),p1=pk.includes(x);c.className=s1&&p1?'hit':p1?'miss':s1?'missed':''});hits+=h;need+=k;st.textContent=`${hits}/${need} recalled`},t0+slot*0.88);
+  });
+ },
+ laser(body,st,q,D){
+  const r=mulberry32(SEED+44);const levels=[[3,10,6,3],[4,13,8,4],[6,16,10,4]].map(p=>genLaser(r,...p));const box=el('div','');box.style.width='100%';box.style.textAlign='center';body.appendChild(box);
+  const slot=D*clamp(1.12-q*0.55,0.55,1.3)/3;let solved=0;
+  levels.forEach((lv,li)=>{const t0=slot*li;if(t0>D-500)return;
+    const wrong=[];lv.grid.forEach(row=>row.forEach(c=>{if(c&&c.path&&c.m!==c.sol)wrong.push(c)}));
+    const decoys=[];lv.grid.forEach(row=>row.forEach(c=>{if(c&&c.t==='mirror'&&!c.path)decoys.push(c)}));
+    const acts=[];wrong.forEach(c=>{if(Math.random()<(1-q)*0.6&&decoys.length){const d=decoys[Math.floor(Math.random()*decoys.length)];acts.push(d,d)}acts.push(c)});
+    const misfire=Math.random()<(1-q)*0.8?Math.floor(acts.length/2):-1;
+    T(()=>{box.innerHTML=miniLaser(lv);st.textContent=`maze ${li+1}/3`},t0);
+    const step=slot*0.7/(acts.length+1);
+    acts.forEach((c,j)=>{T(()=>{c.m^=1;c.flash=1;box.innerHTML=miniLaser(lv);c.flash=0},t0+step*(j+1));
+      if(j===misfire)T(()=>{box.innerHTML=miniLaser(lv,1);st.textContent=`maze ${li+1}/3 · missed`},t0+step*(j+1)+step*0.5)});
+    T(()=>{box.innerHTML=miniLaser(lv,1);if(traceGrid(lv.grid,lv.sr).hit){solved++;st.textContent=`${solved}/3 solved ✓`}},t0+slot*0.85);
+  });
+ },
+ vault(body,st,q,D){
+  const code=genCode(mulberry32(SEED+55));let cand=perms().slice();const list=el('div','mv');body.appendChild(list);const step=D*clamp(1.1-q*0.5,0.55,1.2)/(q<0.3?11:8);let n=0,done=false;
+  const go=()=>{if(done)return;n++;let g;
+    if(n===1||Math.random()<(1-q)*0.35)g=shuffle([0,1,2,3,4,5,6,7,8,9],Math.random).slice(0,5);else g=cand[Math.floor(Math.random()*cand.length)];
+    if(q<0.3&&g.join('')===code.join('')){const alt=cand.filter(c=>c.join('')!==code.join(''));g=alt.length?alt[Math.floor(Math.random()*alt.length)]:shuffle([0,1,2,3,4,5,6,7,8,9],Math.random).slice(0,5);if(g.join('')===code.join(''))g=[g[1],g[0],...g.slice(2)]}
+    const [a,b]=feedback(code,g);cand=cand.filter(c=>{const [x,y]=feedback(c,g);return x===a&&y===b});
+    list.appendChild(el('div','',`<span>${g.join('')}</span><span><span class="pg">${'●'.repeat(a)}</span><span class="pa">${'○'.repeat(b)}</span>${a+b?'':'<span class="mute">—</span>'}</span>`));while(list.children.length>7)list.firstChild.remove();
+    if(a===5){done=true;st.textContent=`CRACKED in ${n} ✓`;st.style.color='var(--green)';return}
+    st.textContent=`guess ${n} · ${cand.length.toLocaleString()} codes left`;if(n<12&&step*(n+1)<D-300)T(go,step);else{st.textContent='NOT CRACKED ✗';st.style.color='var(--red)'}};
+  T(go,step*0.6);
+ }
+};
+function spectate(i){
+  clearT();clearInterval(tmr);document.onkeydown=null;const S=STAGES[i];const alive=bots.filter(b=>b.alive);const order=shuffle(alive,Math.random);const D=26000;
+  streamScene('STAGE '+(i+1)+' · '+S.name.toUpperCase());chatMood('play');if(viewers<FIELD*1.3)setViewers(FIELD*1.4+Math.random()*200);
+  host(`${alive.length.toLocaleString()} players are battling through ${S.name}. ${S.cutLabel}.`);
+  const sorted=alive.slice().sort((a,b)=>b.scores[i]-a.scores[i]);
+  const feat=[...new Set([sorted[0],sorted[Math.floor(sorted.length*0.35)],sorted[Math.floor(sorted.length*0.75)]])];
+  T(()=>host(`Keep an eye on ${feat[0].name} — they're absolutely flying through this one.`),D*0.45);
+  if(feat[1])T(()=>host(`${feat[1].name} is right on the edge of the cut-off… can they hold on?`),D*0.75);
+  app.innerHTML='';const c=el('div','card');
+  c.innerHTML=`<div class="row" style="justify-content:space-between"><div class="mute small mono">STAGE ${i+1} · ${S.name.toUpperCase()}</div><span class="pill pr">SPECTATING</span></div><h2 style="margin-top:8px">Watching live</h2><div class="mute small" style="margin-bottom:12px">${S.cutLabel} · <span id="wt"></span></div><h3>Player cams</h3>`;
+  const pt=feat[1]||feat[0];let pick=null;const pb=el('div','predbox',`<div class="mute small mono">🔮 PREDICTION · +20 POINTS (FOR FUN — NO PRIZES)</div><p style="margin:6px 0 10px">Will <b>${pt.name}</b> make the cut (${S.cutLabel.toLowerCase()})?</p><div class="row"></div>`);
+  pb.querySelector('.row').append(button('YES','sm',()=>{pick='yes';pb.querySelector('.row').innerHTML='<span class="mute small">Locked in: YES</span>'}),button('NO','ghost sm',()=>{pick='no';pb.querySelector('.row').innerHTML='<span class="mute small">Locked in: NO</span>'}));c.appendChild(pb);
+  const cams=el('div','cams');c.appendChild(cams);
+  feat.forEach((b,k)=>{const cam=el('div','cam',`<div class="camhead"><span><span class="rec"></span><b>${b.name}</b></span><span class="camst"></span></div><div class="cambody"></div>`);cams.appendChild(cam);
+    REPLAY[S.key](cam.querySelector('.cambody'),cam.querySelector('.camst'),clamp(b.scores[i]/1000,0.05,1),D)});
+  c.appendChild(el('h3','','Live leaderboard'));const tb=el('table','lb');c.appendChild(tb);app.appendChild(c);
+  let k=0;const steps=26;
+  const tick=()=>{k++;const fin=order.filter((b,x)=>x<Math.ceil(order.length*Math.pow(k/steps,1.6)));
+    liveBoard(tb,fin.map(b=>({name:b.name,s:b.scores[i]})),null,S.cut,order.length);
+    $('#wt').textContent=k>=steps?'all scores in':`${fin.length.toLocaleString()} of ${order.length.toLocaleString()} finished`;
+    if(k<steps){T(tick,D/steps);return}
+    const made=sorted.indexOf(pt)<S.cut;if(pick){const ok=(pick==='yes')===made;pb.querySelector('.row').innerHTML=`<span><b class="${made?'pg':'pa'}">${pt.name} ${made?'made it':'is out'}</b> — ${ok?'you called it! +20':'not this time'}</span>`;addPoints(ok?20:0,ok)}else pb.querySelector('.row').innerHTML=`<span class="mute">${pt.name} ${made?'made the cut':'is out'}.</span>`;
+    sorted.forEach((b,x)=>b.alive=x<S.cut);chatMood('results');
+    const rr=el('div','row');rr.style.marginTop='16px';const cd=el('div','mute small mono');
+    const next=i<4?()=>spectate(i+1):()=>vaultRoom(sorted[0].name);
+    host(i<4?`That's time! The top ${S.cut} are through to ${STAGES[i+1].name}.`:`${sorted[0].name} cracked the vault code! They're our champion.`);
+    rr.append(button(i<4?'WATCH '+STAGES[i+1].name.toUpperCase():'WATCH THE VAULT · FINALE','',()=>{clearT();next()}),cd);c.appendChild(rr);
+    let m=12;const t2=()=>{cd.textContent=`Continuing in ${m}s`;if(m--<=0){clearT();next();return}T(t2,1000)};t2()};
+  tick();
+}
+
+
+/* ---------- creator games trial ---------- */
+var CTRIAL=false,CREATOR=false,CRAND=false,CBEST={};
+try{CREATOR=localStorage.getItem('vault_creator')==='1';CBEST=JSON.parse(localStorage.getItem('vault_cbest')||'{}')}catch(e){}
+const CREATOR_CODE='vault-creator';
+function showCreatorNav(){const n=document.getElementById('navCreator');if(n)n.style.display=CREATOR?'':'none'}
+function creatorSeed(){SEED=CRAND?Math.floor(Math.random()*1e9):20261112+schedule().num*101}
+function creatorPage(){
+  if(!CREATOR){pageStart('','#creator','CREATOR ACCESS','Creator <em>only.</em>','This area is for the show’s creator. Enter your passcode to unlock it on this device.');
+    const f=el('form','card');f.style.maxWidth='460px';f.innerHTML=`<div class="field"><label>Creator passcode</label><input type="password" name="pc" autocomplete="off"></div><div class="err" id="cerr"></div><button class="btn" type="submit">UNLOCK</button>`;
+    f.onsubmit=e=>{e.preventDefault();if(f.pc.value.trim()===CREATOR_CODE){CREATOR=true;try{localStorage.setItem('vault_creator','1')}catch(_){};showCreatorNav();creatorPage()}else $('#cerr').textContent='Wrong passcode.'};
+    app.appendChild(f);app.appendChild(footerEl());return}
+  pageStart('navCreator','#creator','CREATOR · GAMES TRIAL','Play <em>every game.</em>','Your private test area. Scores here never count, nothing is shared, and players can’t see this page.');
+  const opts=el('div','card');opts.innerHTML=`<h3>Puzzle mode</h3><p class="mute small" style="margin:0 0 10px">Game-night puzzles are the exact ones players will get in Game #${schedule().num}. Random gives you a fresh puzzle every time.</p>`;
+  const or=el('div','row');[['Game-night puzzles',false],['Random new puzzle each time',true]].forEach(([l,v])=>or.append(button(l+(CRAND===v?' ✓':''),CRAND===v?'':'ghost',()=>{CRAND=v;creatorPage()})));opts.appendChild(or);app.appendChild(opts);
+  const sec=el('div','');sec.innerHTML=`<div class="sec" style="margin-top:30px"><div class="eyebrow">ALL GAMES</div><h2>Play any game on its own</h2><p>Full timer and real scoring. “Watch AI” shows three computer players (strong, average, weak) — exactly what spectators see on the player cams.</p></div>`;
+  const g=el('div','games');
+  Object.keys(GAMES).forEach(k=>{const G=GAMES[k];const lu=LINEUPS.findIndex(L=>L.keys.includes(k));const best=CBEST[k];
+    const card=el('div','game',`<div class="art">${gameArt(k)}<span class="num">${k==='vault'?'STAGE 5 · EVERY WEEK':LINEUPS.filter(L=>L.keys.includes(k)).map(L=>L.name.toUpperCase()).join(' + ')}</span><span class="cutb">⏱ ${fmt(G.time)}</span></div><div class="body"><h4>${G.name}</h4><div class="tags"><span class="g">${G.skill.toUpperCase()}</span>${best!=null?`<span>YOUR BEST: ${best}</span>`:''}</div><p>${G.how}</p></div>`);
+    const r=el('div','row');r.style.padding='0 20px 20px';r.append(button('▶ PLAY','sm',()=>trialPlay(k)),button('👁 WATCH AI','ghost sm',()=>trialWatch(k)));card.appendChild(r);g.appendChild(card)});
+  const fin=el('div','game final',`<div class="art">${gameArt('room')}<span class="num">FINALE</span></div><div class="body" style="padding:26px"><h4 style="font-size:24px">The Vault</h4><p>Play the champion’s finale yourself — three locks against the clock, prize levels and the Inside Man. Uses this week’s ${gameCfg(schedule().num).vault==='prizes'?'prize':'cash'} ladder.</p></div>`);
+  const fr=el('div','row');fr.style.padding='0 26px 26px';fr.append(button('▶ PLAY THE VAULT','sm',()=>{CTRIAL=true;stopLive();vaultRoom()}));fin.lastChild.appendChild(fr);g.appendChild(fin);
+  sec.appendChild(g);app.appendChild(sec);
+  const full=el('div','');full.innerHTML=`<div class="sec"><div class="eyebrow">FULL RUNS</div><h2>Test a whole game night</h2><p>Solo runs use simulated opponents and cut-offs. The live previews open the full show with the host, chat and stream.</p></div>`;
+  const fr2=el('div','row');
+  LINEUPS.forEach((L,i)=>fr2.append(button(`▶ ${L.name.toUpperCase()} · SOLO RUN`,'',()=>{OVR.lineup=i;resetRun();OVR.lineup=null;creatorSeed();stageIntro(0)})));
+  fr2.append(button('LIVE SHOW AS PLAYER','ghost',()=>{startLive(false)}),button('LIVE SHOW AS SPECTATOR','ghost',()=>{startLive(true)}));
+  full.appendChild(fr2);app.appendChild(full);
+  const lk=el('div','row');lk.style.marginTop='30px';lk.append(button('Lock creator mode on this device','ghost sm',()=>{CREATOR=false;try{localStorage.removeItem('vault_creator')}catch(e){};showCreatorNav();home()}),button('Reset my best scores','ghost sm',()=>{CBEST={};saveLS('vault_cbest',CBEST);creatorPage()}));app.appendChild(lk);
+  app.appendChild(footerEl());
+}
+function trialPlay(k){
+  const G=GAMES[k];stopLive();clearInterval(tmr);document.onkeydown=null;creatorSeed();window.scrollTo(0,0);
+  app.innerHTML=`<div class="hud"><div><span class="pill pr">CREATOR TRIAL</span> <b>${G.name}</b></div><div class="timer" id="tm"></div></div><div class="bar" id="bar"><i></i></div><div class="flash" id="flash"></div><div class="stage-area" id="area"></div>`;
+  let ended=false;const t0=performance.now();
+  const ctx={elapsed:()=>(performance.now()-t0)/1000,remaining:()=>Math.max(0,G.time-(performance.now()-t0)/1000),total:G.time,ended:()=>ended,onTimeout:null};
+  ctx.finish=(score,note)=>{if(ended)return;ended=true;clearInterval(tmr);document.onkeydown=null;setTimeout(()=>trialResult(k,Math.round(clamp(score,0,1000)),note),900)};
+  const tick=()=>{if(ended||!$('#tm'))return;const rem=ctx.remaining();$('#tm').textContent=fmt(rem);const b=$('#bar');b.firstChild.style.width=(rem/G.time*100)+'%';b.classList.toggle('low',rem<15);if(rem<=0&&ctx.onTimeout)ctx.onTimeout()};
+  tmr=setInterval(tick,200);IMPL[k]($('#area'),ctx);tick();
+  const q=el('div','row');q.style.cssText='justify-content:center;margin-top:20px';q.append(button('✕ QUIT TRIAL','ghost sm',()=>{ended=true;clearInterval(tmr);document.onkeydown=null;creatorPage()}));app.appendChild(q);
+}
+function trialResult(k,score,note){
+  const G=GAMES[k];const prev=CBEST[k];const pb=prev==null||score>prev;if(pb){CBEST[k]=score;saveLS('vault_cbest',CBEST)}
+  const pct=[...bots].filter(b=>b.scores[0]!=null).length?0:0;
+  const tier=score>=900?'Elite — would top most leaderboards':score>=750?'Strong — comfortably through a cut':score>=550?'Average — around the middle of the pack':score>=300?'Weak — likely knocked out early':'Very low — rethink the difficulty?';
+  app.innerHTML='';const c=el('div','card center');
+  c.innerHTML=`<div class="mute small mono">CREATOR TRIAL · ${G.name.toUpperCase()}</div><div class="big" style="margin:14px 0 6px">${score}</div><div class="mute">${note}</div>${pb?'<div class="pill ok" style="margin-top:12px">NEW PERSONAL BEST</div>':`<div class="mute small" style="margin-top:12px">Your best: ${prev}</div>`}
+    <p style="margin:16px 0 0"><b>${tier}</b></p><p class="mute small">Scores are out of 1,000. Simulated players average around 500 on this kind of stage.</p>`;
+  const r=el('div','row');r.style.cssText='justify-content:center;margin-top:16px';r.append(button('PLAY AGAIN','',()=>trialPlay(k)),button('WATCH AI','ghost',()=>trialWatch(k)),button('BACK TO CREATOR','ghost',creatorPage));c.appendChild(r);app.appendChild(c);
+}
+function trialWatch(k){
+  const G=GAMES[k];stopLive();clearInterval(tmr);clearT();document.onkeydown=null;creatorSeed();window.scrollTo(0,0);const D=26000;
+  app.innerHTML='';const c=el('div','card');c.innerHTML=`<div class="row" style="justify-content:space-between"><div class="mute small mono">CREATOR · WATCH AI · ${G.name.toUpperCase()}</div><span class="pill pr">SPEEDED-UP REPLAY</span></div><h2 style="margin:8px 0 14px">Three computer players</h2>`;
+  const cams=el('div','cams');c.appendChild(cams);
+  [['Strong player',0.95],['Average player',0.6],['Weak player',0.25]].forEach(([n,q])=>{const cam=el('div','cam',`<div class="camhead"><span><span class="rec"></span><b>${n}</b></span><span class="camst"></span></div><div class="cambody"></div>`);cams.appendChild(cam);REPLAY[k](cam.querySelector('.cambody'),cam.querySelector('.camst'),q,D)});
+  const r=el('div','row');r.style.marginTop='14px';r.append(button('▶ PLAY IT YOURSELF','',()=>{clearT();trialPlay(k)}),button('REPLAY','ghost',()=>trialWatch(k)),button('BACK TO CREATOR','ghost',()=>{clearT();creatorPage()}));c.appendChild(r);app.appendChild(c);
+}
+showCreatorNav();
+
+resetRun();{const h=(location.hash||'').slice(1);if(['winners','prizes','rules','faq','terms','privacy','contact','account','partner','highlights','creator'].includes(h))go(h);else home()}
+}
+</script>
+</body>
+</html>
